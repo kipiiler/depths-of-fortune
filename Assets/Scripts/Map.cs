@@ -64,8 +64,10 @@ public class Map
          * trapIntensity is a deterministic measure of trap deadliness at this tile
          *  trapIntensity is bounded [0, 1], where 0 is easiest (torch) and 1 is a dangerous trap
          */
-        public Segment(float trapIntensity)
+        public Segment(int posX, int posY, float trapIntensity)
         {
+            x = posX;
+            y = posY;
             this.trapIntensity = trapIntensity;
         }
 
