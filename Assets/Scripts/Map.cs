@@ -42,8 +42,10 @@ public class Map
     public class Segment
     {
         // adjacent segments
-        private List<Segment> adjacent;
-        public List<Segment> GetAdjacent() { return adjacent; }
+        public List<Segment> adjacent
+        {
+            get { return adjacent; }
+        }
 
         // integer grid mapping position of this
         private int x, y;
