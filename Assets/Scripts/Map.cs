@@ -1,47 +1,89 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 
-public class Map
+public static class Map
 {
-    public const int MAP_WIDTH = 0;
-    public const int MAP_HEIGHT = 0;
+    public const int MAP_WIDTH = 10;
+    public const int MAP_HEIGHT = 10;
 
-    public const float MODULE_WIDTH = 0;
+    public const float MODULE_WIDTH = 50;
     public const float MAP_BASE_Y = 0;
+    public const float MAP_FLOOR_HEIGHT = 0.5f;
     private const float MODULE_OFFSET = MODULE_WIDTH / 2;
 
+    private static readonly UnityEngine.Object start;
+    private static readonly UnityEngine.Object end;
+    private static readonly UnityEngine.Object[] deadEnds;
+    private static readonly UnityEngine.Object[] corners;
+    private static readonly UnityEngine.Object[] straights;
+    private static readonly UnityEngine.Object[] threeWays;
+    private static readonly UnityEngine.Object[] fourWays;
+
     // all the segments in the map
-    public List<Segment> mapSegments;
+    public static List<Segment> mapSegments;
 
     // unity postions to spawn player and monster
-    public Vector3 playerOrigin;
-    public Vector3 monsterOrigin;
+    public static Vector3 playerOrigin;
+    public static Vector3 monsterOrigin;
 
     /**
      * Creates a new map class
-     * Do not call to change map, use setMap() instead!
      */
-    public Map()
+    static Map()
     {
-        // TODO load assets
+        start =  Resources.Load("start");
+        end = Resources.Load("end");
+        deadEnds = Resources.LoadAll("deadends", typeof(GameObject));
+        corners = Resources.LoadAll("corners", typeof(GameObject));
+        straights = Resources.LoadAll("straights", typeof(GameObject));
+        threeWays = Resources.LoadAll("threeways", typeof(GameObject));
+        fourWays = Resources.LoadAll("fourways", typeof(GameObject));
+        mapSegments = new List<Segment>();
+        playerOrigin = Vector3.zero;
+        monsterOrigin = Vector3.zero;
     }
 
     /**
      * Sets the map using the provided list of segments
      */
-    public void setMap(List<Segment> segments)
+    public static void setMap(List<Segment> segments)
     {
-        // TODO destroy old map, find player and monster origins, load new map
+        // destroy old map
+        foreach (Segment s in mapSegments) s.Release();
+
+        // find player origin and load new map
+        mapSegments = segments;
+        foreach (Segment s in mapSegments)
+        {
+            s.Build();
+            if (s.type == Segment.Type.START) playerOrigin = s.GetUnityPosition();
+        }
+        playerOrigin.y += MAP_FLOOR_HEIGHT;
+
+        // spawn monster at furthest point from player
+        Vector3 far = playerOrigin;
+        float dist = 0;
+        foreach (Segment s in mapSegments)
+        {
+            if (s.type == Segment.Type.END) continue;
+            Vector3 pos = s.GetUnityPosition();
+            float newDist = Vector3.Distance(far, pos);
+            if (newDist > dist)
+            {
+                far = pos;
+                dist = newDist;
+            }
+        }
+        monsterOrigin = far;
+        monsterOrigin.y += MAP_FLOOR_HEIGHT;
     }
 
     /**
      * Finds the segment positioned at the unity position pos
      * throws ArgumentException if pos is not in a segment
      */
-    public Segment FindSegment(Vector3 pos)
+    public static Segment FindSegment(Vector3 pos)
     {
         // TODO
         return null;
@@ -51,7 +93,7 @@ public class Map
      * Finds the shortest path between the two segments,
      * popping elements from the returned queue will trace the path to follow
      */
-    public Queue<Segment> FindPath(Segment origin, Segment destination)
+    public static Queue<Segment> FindPath(Segment origin, Segment destination)
     {
         // TODO
         return null;
@@ -63,7 +105,8 @@ public class Map
     public class Segment
     {
         // adjacent segments
-        public List<Segment> adjacent
+        private List<Segment> adjacent;
+        public List<Segment> Adjacent
         {
             get { return adjacent; }
         }
@@ -89,6 +132,7 @@ public class Map
         {
             if (posX < 0 || posX > MAP_WIDTH || posZ < 0 || posZ > MAP_HEIGHT || trapIntensity < 0 || trapIntensity > 1.0)
                 throw new ArgumentException("Invalid segment args");
+            adjacent = new List<Segment>();
             x = posX;
             z = posZ;
             this.type = type;
@@ -100,17 +144,12 @@ public class Map
             START, END, NORMAL
         }
 
-        private enum SegmentType
-        {
-            DEAD_END, STRAIGHT, CORNER, TRI_JUNCTION, QUAD_JUNCTION
-        }
-
         /**
          * Returns the unity position of this
          */
         public Vector3 GetUnityPosition()
         {
-            return new Vector3(x * MODULE_WIDTH + MODULE_OFFSET, MAP_BASE_Y, z + MODULE_WIDTH + MODULE_OFFSET);
+            return new Vector3(x * MODULE_WIDTH + MODULE_OFFSET, MAP_BASE_Y, z * MODULE_WIDTH + MODULE_OFFSET);
         }
 
         /**
@@ -157,51 +196,51 @@ public class Map
             }
 
             // determine type and rotation
-            SegmentType type;
             float rotation;
+            UnityEngine.Object[] segmentSource;
             switch (this.adjacent.Count)
             {
                 case 0:
                     throw new InvalidOperationException("Unconnected segment");
                 case 1:
-                    type = SegmentType.DEAD_END;
-                    if (up) rotation = 0;
-                    else if (down) rotation = 180;
-                    else if (left) rotation = 270;
-                    else rotation = 90;
+                    segmentSource = Map.deadEnds;
+                    if (up) rotation = 270;
+                    else if (down) rotation = 90;
+                    else if (left) rotation = 180;
+                    else rotation = 0;
                     break;
                 case 2:
                     if (up && down) {
                         rotation = 90;
-                        type = SegmentType.STRAIGHT;
+                        segmentSource = Map.straights;
                     } else if (left && right) {
                         rotation = 0;
-                        type = SegmentType.STRAIGHT;
+                        segmentSource = Map.straights;
                     } else if (up && right) {
                         rotation = 0;
-                        type = SegmentType.CORNER;
+                        segmentSource = Map.corners;
                     } else if (right && down) {
                         rotation = 90;
-                        type = SegmentType.CORNER;
+                        segmentSource = Map.corners;
                     } else if (down && left) {
                         rotation = 180;
-                        type = SegmentType.CORNER;
+                        segmentSource = Map.corners;
                     } else if (left && up) {
                         rotation = 270;
-                        type = SegmentType.CORNER;
+                        segmentSource = Map.corners;
                     } else {
                         throw new InvalidProgramException("Missed corner case");
                     }
                     break;
                 case 3:
-                    type = SegmentType.TRI_JUNCTION;
+                    segmentSource = Map.threeWays;
                     if (!up) rotation = 180;
                     else if (!down) rotation = 0;
                     else if (!left) rotation = 90;
                     else rotation = 270;
                     break;
                 case 4:
-                    type = SegmentType.QUAD_JUNCTION;
+                    segmentSource = Map.fourWays;
                     rotation = 0;
                     break;
                 default:
@@ -209,7 +248,20 @@ public class Map
                     throw new InvalidProgramException("Invalid segment connection number");
             }
 
-            // TODO spawn the gameobject
+            // determine the exact type to spawn
+            UnityEngine.Object original;
+            if (this.type == Type.START) {
+                original = Map.start;
+            } else if (this.type == Type.END) {
+                original = Map.end;
+            } else {
+                // select based on trapIntensity
+                int sel = (int) Math.Round(trapIntensity * (segmentSource.Length - 1));
+                original = segmentSource[sel];
+            }
+
+            // spawn the gameobject
+            instance = (GameObject) UnityEngine.Object.Instantiate(original, this.GetUnityPosition(), Quaternion.Euler(0, rotation, 0));
         }
 
         /**
