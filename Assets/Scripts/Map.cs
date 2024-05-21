@@ -68,7 +68,7 @@ public static class Map
         {
             if (s.type == Segment.Type.END) continue;
             Vector3 pos = s.GetUnityPosition();
-            float newDist = Vector3.Distance(far, pos);
+            float newDist = Vector3.Distance(playerOrigin, pos);
             if (newDist > dist)
             {
                 far = pos;
@@ -85,8 +85,13 @@ public static class Map
      */
     public static Segment FindSegment(Vector3 pos)
     {
-        // TODO
-        return null;
+        int x = (int)(pos.x / MODULE_WIDTH);
+        int z = (int)(pos.z / MODULE_WIDTH);
+        foreach (Segment s in mapSegments)
+        {
+            if (s.x == x && s.z == z) return s;
+        }
+        throw new ArgumentException("Position is not in a segment");
     }
 
     /**
