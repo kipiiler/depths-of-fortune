@@ -40,6 +40,12 @@ public class GameController : MonoBehaviour
 
         UnityEngine.Object.Instantiate(player, Map.playerOrigin, Quaternion.identity);
         UnityEngine.Object.Instantiate(monster, Map.monsterOrigin, Quaternion.identity);
+
+        Queue<Map.Segment> path = Map.FindPath(Map.FindSegment(Map.playerOrigin), Map.FindSegment(Map.monsterOrigin));
+        while (path.Count > 0)
+        {
+            Debug.Log(path.Peek().x.ToString() + ", " + path.Dequeue().z.ToString());
+        }
     }
 
     // Update is called once per frame

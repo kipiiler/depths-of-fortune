@@ -100,8 +100,40 @@ public static class Map
      */
     public static Queue<Segment> FindPath(Segment origin, Segment destination)
     {
-        // TODO
-        return null;
+        Queue<Segment> queued = new Queue<Segment>();
+        queued.Enqueue(origin);
+        Segment[][] prev = new Segment[MAP_WIDTH][];
+        for (int i =  0; i < MAP_WIDTH; i++) prev[i] = new Segment[MAP_HEIGHT];
+
+        while (queued.Count != 0)
+        {
+            Segment cur = queued.Dequeue();
+            
+            if (cur == destination)
+            {
+                // path found, create return queue
+                Stack<Segment> path = new Stack<Segment>();
+                while (cur != origin)
+                {
+                    path.Push(cur);
+                    cur = prev[cur.x][cur.z];
+                }
+                Queue<Segment> tmp = new Queue<Segment>();
+                while (path.Count != 0) tmp.Enqueue(path.Pop());
+                return tmp;
+            }
+
+            // run another round of BFS
+            foreach (Segment s in cur.Adjacent)
+            {
+                if (prev[s.x][s.z] == null)
+                {
+                    prev[s.x][s.z] = cur;
+                    queued.Enqueue(s);
+                }
+            }
+        }
+        throw new InvalidOperationException("No path exists");
     }
 
     /**
