@@ -15,7 +15,7 @@ public class GameController : MonoBehaviour
         // TODO replace with map factory generation
         List<Map.Segment> segments = new List<Map.Segment>();
         segments.Add(new Map.Segment(0, 0, 0, Map.Segment.Type.START));
-        segments.Add(new Map.Segment(0, 1, 0, Map.Segment.Type.NORMAL));
+        segments.Add(new Map.Segment(0, 1, 1f, Map.Segment.Type.NORMAL));
         segments[0].BindAdjacent(segments[1]);
         segments.Add(new Map.Segment(1, 1, 0, Map.Segment.Type.NORMAL));
         segments[1].BindAdjacent(segments[2]);
