@@ -98,7 +98,7 @@ public static class Map
      * Finds the shortest path between the two segments,
      * popping elements from the returned queue will trace the path to follow
      */
-    public static Queue<Segment> FindPath(Segment origin, Segment destination)
+    public static Stack<Segment> FindPath(Segment origin, Segment destination)
     {
         Queue<Segment> queued = new Queue<Segment>();
         queued.Enqueue(origin);
@@ -118,8 +118,8 @@ public static class Map
                     path.Push(cur);
                     cur = prev[cur.x][cur.z];
                 }
-                Queue<Segment> tmp = new Queue<Segment>();
-                while (path.Count != 0) tmp.Enqueue(path.Pop());
+                Stack<Segment> tmp = new Stack<Segment>();
+                while (path.Count != 0) tmp.Push(path.Pop());
                 return tmp;
             }
 
