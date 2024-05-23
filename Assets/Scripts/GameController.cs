@@ -46,7 +46,7 @@ public class GameController : MonoBehaviour
         UnityEngine.Object.Instantiate(playerPrefab, Map.playerOrigin, Quaternion.identity);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
 
-        path = Map.FindPath(Map.FindSegment(Map.playerOrigin), Map.FindSegment(Map.monsterOrigin));
+        path = Map.FindPath(Map.FindSegment(Map.monsterOrigin), Map.FindSegment(Map.playerOrigin));
     }
 
     // Update is called once per frame

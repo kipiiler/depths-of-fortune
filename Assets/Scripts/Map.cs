@@ -118,9 +118,7 @@ public static class Map
                     path.Push(cur);
                     cur = prev[cur.x][cur.z];
                 }
-                Stack<Segment> tmp = new Stack<Segment>();
-                while (path.Count != 0) tmp.Push(path.Pop());
-                return tmp;
+                return path;
             }
 
             // run another round of BFS
