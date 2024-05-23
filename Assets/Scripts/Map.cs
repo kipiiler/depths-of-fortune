@@ -32,7 +32,7 @@ public static class Map
      */
     static Map()
     {
-        start =  Resources.Load("start");
+        start = Resources.Load("start");
         end = Resources.Load("end");
         deadEnds = Resources.LoadAll("deadends", typeof(GameObject));
         corners = Resources.LoadAll("corners", typeof(GameObject));
@@ -103,12 +103,12 @@ public static class Map
         Queue<Segment> queued = new Queue<Segment>();
         queued.Enqueue(origin);
         Segment[][] prev = new Segment[MAP_WIDTH][];
-        for (int i =  0; i < MAP_WIDTH; i++) prev[i] = new Segment[MAP_HEIGHT];
+        for (int i = 0; i < MAP_WIDTH; i++) prev[i] = new Segment[MAP_HEIGHT];
 
         while (queued.Count != 0)
         {
             Segment cur = queued.Dequeue();
-            
+
             if (cur == destination)
             {
                 // path found, create return queue
@@ -195,7 +195,10 @@ public static class Map
         public void BindAdjacent(Segment adj)
         {
             if (Math.Abs(x - adj.x) + Math.Abs(z - adj.z) != 1)
+            {
+                Debug.Log("Binding " + x + " " + z + " to " + adj.x + " " + adj.z);
                 throw new ArgumentException("Cannot bind nonadjacent segments");
+            }
             if (adj.adjacent.Contains(this))
                 throw new ArgumentException("Cannot rebind segments");
             adjacent.Add(adj);
@@ -215,16 +218,24 @@ public static class Map
             bool up = false, down = false, left = false, right = false;
             foreach (Segment con in adjacent)
             {
-                if (con.x == x) {
-                    if (con.z == z + 1) {
+                if (con.x == x)
+                {
+                    if (con.z == z + 1)
+                    {
                         up = true;
-                    } else {
+                    }
+                    else
+                    {
                         // con.z == z - 1 (implied)
                         down = true;
                     }
-                } else if (con.x == x + 1) {
+                }
+                else if (con.x == x + 1)
+                {
                     right = true;
-                } else {
+                }
+                else
+                {
                     // con.x == x - 1 (implied)
                     left = true;
                 }
@@ -245,25 +256,38 @@ public static class Map
                     else rotation = 0;
                     break;
                 case 2:
-                    if (up && down) {
+                    if (up && down)
+                    {
                         rotation = 90;
                         segmentSource = Map.straights;
-                    } else if (left && right) {
+                    }
+                    else if (left && right)
+                    {
                         rotation = 0;
                         segmentSource = Map.straights;
-                    } else if (up && right) {
+                    }
+                    else if (up && right)
+                    {
                         rotation = 0;
                         segmentSource = Map.corners;
-                    } else if (right && down) {
+                    }
+                    else if (right && down)
+                    {
                         rotation = 90;
                         segmentSource = Map.corners;
-                    } else if (down && left) {
+                    }
+                    else if (down && left)
+                    {
                         rotation = 180;
                         segmentSource = Map.corners;
-                    } else if (left && up) {
+                    }
+                    else if (left && up)
+                    {
                         rotation = 270;
                         segmentSource = Map.corners;
-                    } else {
+                    }
+                    else
+                    {
                         throw new InvalidProgramException("Missed corner case");
                     }
                     break;
@@ -285,18 +309,23 @@ public static class Map
 
             // determine the exact type to spawn
             UnityEngine.Object original;
-            if (this.type == Type.START) {
+            if (this.type == Type.START)
+            {
                 original = Map.start;
-            } else if (this.type == Type.END) {
+            }
+            else if (this.type == Type.END)
+            {
                 original = Map.end;
-            } else {
+            }
+            else
+            {
                 // select based on trapIntensity
-                int sel = (int) Math.Round(trapIntensity * (segmentSource.Length - 1));
+                int sel = (int)Math.Round(trapIntensity * (segmentSource.Length - 1));
                 original = segmentSource[sel];
             }
 
             // spawn the gameobject
-            instance = (GameObject) UnityEngine.Object.Instantiate(original, this.GetUnityPosition(), Quaternion.Euler(0, rotation, 0));
+            instance = (GameObject)UnityEngine.Object.Instantiate(original, this.GetUnityPosition(), Quaternion.Euler(0, rotation, 0));
         }
 
         /**

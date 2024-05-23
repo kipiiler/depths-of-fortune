@@ -16,32 +16,41 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        MapGenerator mapGenerator = new MapGenerator(10, 10);
+        List<Vector2> paths = mapGenerator.GenerateMap();
+        string[,] map = mapGenerator.GetMap();
+        // print this out in grid form
+        string mapString = "";
+        for (int i = 0; i < map.GetLength(0); i++)
+        {
+            for (int j = 0; j < map.GetLength(1); j++)
+            {
+                mapString += map[i, j];
+            }
+            mapString += "\n";
+        }
+        Debug.Log(mapString);
         // Temporary map generation script
         // TODO replace with map factory generation
         List<Map.Segment> segments = new List<Map.Segment>();
-        segments.Add(new Map.Segment(0, 0, 0, Map.Segment.Type.START));
-        segments.Add(new Map.Segment(0, 1, 1f, Map.Segment.Type.NORMAL));
-        segments[0].BindAdjacent(segments[1]);
-        segments.Add(new Map.Segment(1, 1, 0, Map.Segment.Type.NORMAL));
-        segments[1].BindAdjacent(segments[2]);
-        segments.Add(new Map.Segment(1, 0, 0, Map.Segment.Type.NORMAL));
-        segments[2].BindAdjacent(segments[3]);
-        segments.Add(new Map.Segment(1, 2, 0, Map.Segment.Type.NORMAL));
-        segments[2].BindAdjacent(segments[4]);
-        segments.Add(new Map.Segment(1, 3, 0, Map.Segment.Type.NORMAL));
-        segments[4].BindAdjacent(segments[5]);
-        segments.Add(new Map.Segment(2, 3, 0, Map.Segment.Type.END));
-        segments[5].BindAdjacent(segments[6]);
-        segments.Add(new Map.Segment(0, 3, 0, Map.Segment.Type.NORMAL));
-        segments[5].BindAdjacent(segments[7]);
-        segments.Add(new Map.Segment(1, 4, 0, Map.Segment.Type.NORMAL));
-        segments[5].BindAdjacent(segments[8]);
-        segments.Add(new Map.Segment(0, 4, 0, Map.Segment.Type.NORMAL));
-        segments[7].BindAdjacent(segments[9]);
-        segments[8].BindAdjacent(segments[9]);
-        segments.Add(new Map.Segment(0, 5, 0, Map.Segment.Type.NORMAL));
-        segments[9].BindAdjacent(segments[10]);
+        for (int i = 0; i < paths.Count; i++)
+        {
+            if (i == 0)
+            {
+                segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.START));
+                continue;
+            }
+            if (i == paths.Count - 1)
+            {
+                segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.END));
+                segments[i - 1].BindAdjacent(segments[i]);
+                continue;
+            }
+            segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.NORMAL));
+            segments[i - 1].BindAdjacent(segments[i]);
+        }
         Map.setMap(segments);
+
 
         UnityEngine.Object.Instantiate(playerPrefab, Map.playerOrigin, Quaternion.identity);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
@@ -53,9 +62,11 @@ public class GameController : MonoBehaviour
     void Update()
     {
         // Provide the monster new setpoints to the player
-        if (path.Count > 1) {
+        if (path.Count > 1)
+        {
             // Check if monster has hit the setpoint
-            if (Vector3.Distance(monster.transform.position, path.Peek().GetUnityPosition()) < 0.4) {
+            if (Vector3.Distance(monster.transform.position, path.Peek().GetUnityPosition()) < 0.4)
+            {
                 Debug.Log("Monster reached the setpoint, queue-ing a new one");
                 path.Pop();
             }
