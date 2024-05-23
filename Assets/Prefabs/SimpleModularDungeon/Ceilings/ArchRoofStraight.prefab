@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 66e08f7249ca2bb4d86448d47af160ee, type: 2}
+  - {fileID: 2100000, guid: d314fbdfbee8db0499469fdfe603963d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -93,7 +93,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7276066514494732824}
   m_Layer: 0
-  m_Name: ArchRoof
+  m_Name: ArchRoofStraight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
