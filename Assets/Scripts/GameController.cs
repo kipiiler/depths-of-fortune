@@ -5,8 +5,13 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     // Prefabs to instantiate!
-    public GameObject player;
-    public GameObject monster;
+    public GameObject playerPrefab;
+    public GameObject monsterPrefab;
+
+    private GameObject monster;
+
+    // Monster to player path
+    Stack<Map.Segment> path;
 
     // Start is called before the first frame update
     void Start()
@@ -38,13 +43,24 @@ public class GameController : MonoBehaviour
         segments[9].BindAdjacent(segments[10]);
         Map.setMap(segments);
 
-        UnityEngine.Object.Instantiate(player, Map.playerOrigin, Quaternion.identity);
-        UnityEngine.Object.Instantiate(monster, Map.monsterOrigin, Quaternion.identity);
+        UnityEngine.Object.Instantiate(playerPrefab, Map.playerOrigin, Quaternion.identity);
+        monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
+
+        path = Map.FindPath(Map.FindSegment(Map.playerOrigin), Map.FindSegment(Map.monsterOrigin));
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        // Provide the monster new setpoints to the player
+        if (path.Count > 1) {
+            // Check if monster has hit the setpoint
+            if (Vector3.Distance(monster.transform.position, path.Peek().GetUnityPosition()) < 0.4) {
+                Debug.Log("Monster reached the setpoint, queue-ing a new one");
+                path.Pop();
+            }
+
+            monster.GetComponent<MonsterBehavior>().UpdateSetpoint(path.Peek().GetUnityPosition());
+        }
     }
 }
