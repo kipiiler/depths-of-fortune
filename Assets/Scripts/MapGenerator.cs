@@ -22,7 +22,7 @@ public class MapGenerator
         this.Start = new Vector2(0, 0);
         this.End = new Vector2(width - 1, height - 1);
         this.map = new string[width, height];
-        this.randomWalkStrategy = new DFSRandomWalkStrategy(Start, End, map, 0.2f);
+        this.randomWalkStrategy = new DFSRandomWalkStrategy(Start, End, map, 1f);
     }
 
     public List<Vector2> GenerateMap()
@@ -81,6 +81,7 @@ public class DFSRandomWalkStrategy : RandomWalkStrategy
     private double temperature;
     private const int MAX_TEMPERATURE = 1000;
 
+
     public DFSRandomWalkStrategy(Vector2 start, Vector2 end, string[,] map) : base(start, end, map)
     {
         random = new System.Random();
@@ -108,12 +109,13 @@ public class DFSRandomWalkStrategy : RandomWalkStrategy
     {
         Stack<Vector2> stack = new Stack<Vector2>();
         stack.Push(start);
-        List<Vector2> path = new List<Vector2>();
+        Dictionary<Vector2, Vector2> cameFrom = new Dictionary<Vector2, Vector2>(); // To store the path
+        cameFrom[start] = start;
+
         while (stack.Count > 0)
         {
             Vector2 cur = stack.Pop();
             map[(int)cur.x, (int)cur.y] = "a";
-            path.Add(cur);
             if (cur == end)
             {
                 break;
@@ -141,9 +143,25 @@ public class DFSRandomWalkStrategy : RandomWalkStrategy
                 if (map[(int)neighbor.x, (int)neighbor.y] == "*")
                 {
                     stack.Push(neighbor);
+                    cameFrom[neighbor] = cur;
                 }
             }
         }
+
+        // Reconstruct the path from end to start
+        List<Vector2> path = new List<Vector2>();
+        if (cameFrom.ContainsKey(end))
+        {
+            Vector2 current = end;
+            while (current != start)
+            {
+                path.Add(current);
+                current = cameFrom[current];
+            }
+            path.Add(start);
+            path.Reverse();
+        }
+
         return path;
     }
 }
