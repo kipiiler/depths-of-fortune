@@ -16,7 +16,7 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        MapGenerator mapGenerator = new MapGenerator(10, 10);
+        MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
         List<Vector2> paths = mapGenerator.GenerateMap();
         string[,] map = mapGenerator.GetMap();
         // print this out in grid form
