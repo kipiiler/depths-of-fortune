@@ -28,7 +28,7 @@ public class GameController : MonoBehaviour
         segments[2].BindAdjacent(segments[3]);
         segments.Add(new Map.Segment(1, 2, 0, Map.Segment.Type.NORMAL));
         segments[2].BindAdjacent(segments[4]);
-        segments.Add(new Map.Segment(1, 3, 0, Map.Segment.Type.NORMAL));
+        segments.Add(new Map.Segment(1, 3, 1, Map.Segment.Type.NORMAL));
         segments[4].BindAdjacent(segments[5]);
         segments.Add(new Map.Segment(2, 3, 0, Map.Segment.Type.END));
         segments[5].BindAdjacent(segments[6]);
