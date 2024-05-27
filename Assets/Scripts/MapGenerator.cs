@@ -13,6 +13,11 @@ public class MapGenerator
 
     private string[,] map; // 2D array of strings
 
+    private Cell[,] grid;
+
+    private List<Tile> tiles;
+    private Dictionary<string, Dictionary<Tile.EdgeDirection, List<Tile>>> tileRules;
+
     private RandomWalkStrategy randomWalkStrategy;
 
     public MapGenerator(int width, int height)
@@ -22,13 +27,21 @@ public class MapGenerator
         this.Start = new Vector2(0, 0);
         this.End = new Vector2(width - 1, height - 1);
         this.map = new string[width, height];
-        this.randomWalkStrategy = new DFSRandomWalkStrategy(Start, End, map, 1f);
+        this.grid = new Cell[width, height];
+        this.randomWalkStrategy = new DFSRandomWalkStrategy(Start, End, map, 0.6f);
+        this.tileRules = new Dictionary<string, Dictionary<Tile.EdgeDirection, List<Tile>>>();
+    }
+
+    public void SetTiles(List<Tile> tiles)
+    {
+        this.tiles = tiles;
     }
 
     public List<Vector2> GenerateMap()
     {
         intitMap();
-        return RandomWalkFromStartToEnd();
+        // return RandomWalkFromStartToEnd();
+        return new List<Vector2>();
     }
 
     public string[,] GetMap()
@@ -45,6 +58,144 @@ public class MapGenerator
                 map[i, j] = "*";
             }
         }
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                grid[i, j] = new Cell(this.tiles);
+            }
+        }
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (i > 0)
+                {
+                    grid[i, j].AddNeighbor(Tile.EdgeDirection.WEST, grid[i - 1, j]);
+                }
+                if (i < width - 1)
+                {
+                    grid[i, j].AddNeighbor(Tile.EdgeDirection.EAST, grid[i + 1, j]);
+                }
+                if (j > 0)
+                {
+                    grid[i, j].AddNeighbor(Tile.EdgeDirection.SOUTH, grid[i, j - 1]);
+                }
+                if (j < height - 1)
+                {
+                    grid[i, j].AddNeighbor(Tile.EdgeDirection.NORTH, grid[i, j + 1]);
+                }
+            }
+        }
+
+        GenerateTileRules();
+    }
+
+    public void GenerateTileRules()
+    {
+        foreach (Tile tile in tiles)
+        {
+            tileRules[tile.nameID] = new Dictionary<Tile.EdgeDirection, List<Tile>>();
+            tile.GenerateRules(tiles);
+            tileRules[tile.nameID] = tile.rules;
+        }
+
+        string result = "";
+
+        foreach (KeyValuePair<string, Dictionary<Tile.EdgeDirection, List<Tile>>> entry in tileRules)
+        {
+            result += entry.Key + ":\n";
+            foreach (KeyValuePair<Tile.EdgeDirection, List<Tile>> rule in entry.Value)
+            {
+                result += rule.Key + ": ";
+                foreach (Tile tile in rule.Value)
+                {
+                    result += tile.nameID + ", ";
+                }
+                result += "\n";
+            }
+        }
+        Debug.Log(result);
+    }
+
+    private List<Vector2> findSmallestEntropyCells()
+    {
+        List<Vector2> smallestEntropyCells = new List<Vector2>();
+        double minEntropy = double.MaxValue;
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (grid[i, j].getEntropy() < minEntropy && grid[i, j].collapsed == false)
+                {
+                    minEntropy = grid[i, j].getEntropy();
+                    smallestEntropyCells.Clear();
+                    smallestEntropyCells.Add(new Vector2(i, j));
+                }
+                else if (grid[i, j].getEntropy() == minEntropy && grid[i, j].collapsed == false)
+                {
+                    smallestEntropyCells.Add(new Vector2(i, j));
+                }
+            }
+        }
+        return smallestEntropyCells;
+    }
+
+    public void CollapseCell(int x, int y)
+    {
+        grid[x, y].Collapse();
+        DrawTile(grid[x, y].chooseOption, x, y);
+        List<Tile.EdgeDirection> directions = grid[x, y].GetDirection();
+        for (int i = 0; i < directions.Count; i++)
+        {
+            Tile.EdgeDirection direction = directions[i];
+            Cell neighbor = grid[x, y].GetNeighbor(direction);
+            // neighbor.ConstrainsOption(grid[x, y].possibleOptions, direction, tileRules);
+        }
+    }
+
+    public bool waveFunctionCollapse()
+    {
+        List<Vector2> smallestEntropyCells = findSmallestEntropyCells();
+        if (smallestEntropyCells.Count == 0)
+        {
+            return false;
+        }
+
+        Vector2 cell = smallestEntropyCells[UnityEngine.Random.Range(0, smallestEntropyCells.Count)];
+        int x = (int)cell.x;
+        int y = (int)cell.y;
+        grid[x, y].Collapse();
+        DrawTile(grid[x, y].chooseOption, x, y);
+
+        Stack<Vector2> stack = new Stack<Vector2>();
+        stack.Push(cell);
+
+        while (stack.Count > 0)
+        {
+            Vector2 current = stack.Pop();
+            List<Tile.EdgeDirection> directions = grid[(int)current.x, (int)current.y].GetDirection();
+            for (int i = 0; i < directions.Count; i++)
+            {
+                Tile.EdgeDirection direction = directions[i];
+                Cell neighbor = grid[(int)current.x, (int)current.y].GetNeighbor(direction);
+                if (neighbor.collapsed == false)
+                {
+                    bool isReduced = neighbor.ConstrainsOption(grid[(int)current.x, (int)current.y].possibleOptions, direction, tileRules);
+                    if (isReduced)
+                        stack.Push(new Vector2((int)current.x, (int)current.y));
+                }
+            }
+        }
+        return true;
+    }
+
+    public void DrawTile(string tileName, int x, int y)
+    {
+        Tile tile = tiles.Find(t => t.nameID == tileName);
+        tile.DrawTile(new Vector3(x * Map.MODULE_WIDTH, 0, y * Map.MODULE_WIDTH));
     }
 
     private List<Vector2> RandomWalkFromStartToEnd()
