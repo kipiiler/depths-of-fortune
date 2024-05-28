@@ -17,44 +17,16 @@ public class GameController : MonoBehaviour
     void Start()
     {
         MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
-        // Temporary map generation script
-        // TODO replace with map factory generation
 
-        Tile startTile = new Tile("start", new string[] { "0", "1", "0", "0" }, "Start");
-        Tile startTile1 = startTile.Rotate(1, "Start Rotate 1");
-        Tile startTile2 = startTile.Rotate(2, "Start Rotate 2");
-        Tile startTile3 = startTile.Rotate(3, "Start Rotate 3");
+        List<Tile> allTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
+        List<Tile> NorthToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToSouthTileData.json");
+        List<Tile> EastToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToWestTileData.json");
+        List<Tile> NorthToEastTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToEastTileData.json");
+        List<Tile> EastToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToSouthTileData.json");
+        List<Tile> SouthToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/SouthToWestTileData.json");
+        List<Tile> WestToNorthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/WestToNorthTileData.json");
 
-        Tile endTile = new Tile("end", new string[] { "0", "1", "0", "0" }, "End");
-        Tile endTile1 = endTile.Rotate(1, "End Rotate 1");
-        Tile endTile2 = endTile.Rotate(2, "End Rotate 2");
-        Tile endTile3 = endTile.Rotate(3, "End Rotate 3");
-
-
-        Tile tile1 = new Tile("empty", new string[] { "0", "0", "0", "0" }, "Empty");
-
-        Tile straightTile = new Tile("straights/straight1", new string[] { "0", "1", "0", "1" }, "Straight original");
-        Tile straightTile1 = straightTile.Rotate(1, "Straight Rotate 1");
-
-        Tile tile3 = new Tile("corners/corner1", new string[] { "1", "1", "0", "0" }, "Corner original");
-        Tile tiler4 = tile3.Rotate(1, "Corner Rotate 1");
-        Tile tiler5 = tile3.Rotate(2, "Corner Rotate 2");
-        Tile tiler6 = tile3.Rotate(3, "Corner Rotate 3");
-
-        Tile threeTile = new Tile("threeways/threeway1", new string[] { "1", "1", "0", "1" }, "Threeway original");
-        Tile tile4 = threeTile.Rotate(1, "Threeway Rotate 1");
-        Tile tile5 = threeTile.Rotate(2, "Threeway Rotate 2");
-        Tile tile6 = threeTile.Rotate(3, "Threeway Rotate 3");
-
-        Tile tile7 = new Tile("fourways/fourway2", new string[] { "1", "1", "1", "1" }, "4some");
-        Tile tile8 = new Tile("fourways/fourway1", new string[] { "1", "1", "1", "1" }, "4some1");
-        mapGenerator.SetTiles(new List<Tile> { straightTile, straightTile1, startTile, startTile1, startTile2, startTile3, endTile, endTile1, endTile2, endTile3, tile8, tile7, tile1, tile3, tile4, tile5, tile6, threeTile, tiler4, tiler5, tiler6 });
-        List<Tile> EastToWestTiles = new List<Tile> { straightTile, threeTile, tile5, tile7, tile8 };
-        List<Tile> NorthToSouthTiles = new List<Tile> { straightTile1, tile4, tile6, tile7, tile8 };
-        List<Tile> NorthToEastTiles = new List<Tile> { tile3, tile8 };
-        List<Tile> EastToSouthTiles = new List<Tile> { tiler4, tile8 };
-        List<Tile> SouthToWestTiles = new List<Tile> { tiler5, tile8 };
-        List<Tile> WestToNorthTiles = new List<Tile> { tiler6, tile8 };
+        mapGenerator.SetTiles(allTiles);
         mapGenerator.SetEastToWestTiles(EastToWestTiles);
         mapGenerator.SetNorthToSouthTiles(NorthToSouthTiles);
         mapGenerator.SetNorthToEastTiles(NorthToEastTiles);

@@ -1,0 +1,11 @@
+{
+  "tiles": [
+    {
+      "resoursePath": "corners/corner1",
+      "edges": ["1", "1", "0", "0"],
+      "possible_rotation": [0],
+      "weight": 1.0,
+      "nameID": "Corner1"
+    }
+  ]
+}

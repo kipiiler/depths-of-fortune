@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+[Serializable]
 public class Tile
 {
     public enum EdgeDirection
@@ -18,8 +19,43 @@ public class Tile
     public Dictionary<EdgeDirection, List<Tile>> rules;
     public Quaternion rotation;
     public string nameID;
+    public double weight;
 
-    public Tile(string resourcePath, string[] edges, string nameID)
+    public static List<Tile> CreateFromData(TileData data)
+    {
+        Tile t = new Tile(data.resoursePath, data.edges, data.nameID, data.weight);
+        List<Tile> tiles = new List<Tile>();
+        for (int i = 0; i < data.possible_rotation.Length; i++)
+        {
+            if (data.possible_rotation[i] == 0)
+            {
+                tiles.Add(t);
+            }
+            else
+            {
+                tiles.Add(t.Rotate(data.possible_rotation[i], data.nameID + " Rotate " + data.possible_rotation[i]));
+            }
+        }
+        return tiles;
+    }
+
+    public static List<Tile> CreateListFromData(List<TileData> data)
+    {
+        List<Tile> tiles = new List<Tile>();
+        foreach (TileData tileData in data)
+        {
+            tiles.AddRange(CreateFromData(tileData));
+        }
+        return tiles;
+    }
+
+    public static List<Tile> CreateListFromPath(string path)
+    {
+        List<TileData> tileDatas = TileDataList.CreateListFromFile(path);
+        return CreateListFromData(tileDatas);
+    }
+
+    public Tile(string resourcePath, string[] edges, string nameID, double weight)
     {
         this.ResourcePath = resourcePath;
         this.nameID = nameID;
@@ -30,9 +66,10 @@ public class Tile
         this.rules.Add(EdgeDirection.SOUTH, new List<Tile>());
         this.rules.Add(EdgeDirection.WEST, new List<Tile>());
         this.rotation = Quaternion.identity;
+        this.weight = weight;
     }
 
-    public Tile(string resourcePath, string[] edges, Quaternion rotation, string nameID)
+    public Tile(string resourcePath, string[] edges, Quaternion rotation, string nameID, double weight)
     {
         this.ResourcePath = resourcePath;
         this.Edges = edges;
@@ -43,6 +80,7 @@ public class Tile
         this.rules.Add(EdgeDirection.SOUTH, new List<Tile>());
         this.rules.Add(EdgeDirection.WEST, new List<Tile>());
         this.rotation = rotation;
+        this.weight = weight;
     }
 
     public void GenerateRules(List<Tile> tiles)
@@ -131,7 +169,7 @@ public class Tile
             newEdges[1] = newEdges[0];
             newEdges[0] = temp;
         }
-        Tile newTile = new Tile(ResourcePath, newEdges, rotation * Quaternion.Euler(0, 90 * rotationAmount, 0), name);
+        Tile newTile = new Tile(ResourcePath, newEdges, rotation * Quaternion.Euler(0, 90 * rotationAmount, 0), name, weight);
         return newTile;
     }
 
