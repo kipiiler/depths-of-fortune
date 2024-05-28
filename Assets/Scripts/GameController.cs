@@ -17,86 +17,54 @@ public class GameController : MonoBehaviour
     void Start()
     {
         MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
-        // List<Vector2> paths = mapGenerator.GenerateMap();
-        // string[,] map = mapGenerator.GetMap();
-        // // print this out in grid form
-        // string mapString = "";
-        // for (int i = 0; i < map.GetLength(0); i++)
-        // {
-        //     for (int j = 0; j < map.GetLength(1); j++)
-        //     {
-        //         mapString += map[i, j];
-        //     }
-        //     mapString += "\n";
-        // }
-        // Debug.Log(mapString);
         // Temporary map generation script
         // TODO replace with map factory generation
-        // List<Map.Segment> segments = new List<Map.Segment>();
-        // for (int i = 0; i < paths.Count; i++)
-        // {
-        //     if (i == 0)
-        //     {
-        //         segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.START));
-        //         continue;
-        //     }
-        //     if (i == paths.Count - 1)
-        //     {
-        //         segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.END));
-        //         segments[i - 1].BindAdjacent(segments[i]);
-        //         continue;
-        //     }
-        //     segments.Add(new Map.Segment((int)paths[i].x, (int)paths[i].y, 0, Map.Segment.Type.NORMAL));
-        //     segments[i - 1].BindAdjacent(segments[i]);
-        // }
-        // Map.setMap(segments);
+
+        Tile startTile = new Tile("start", new string[] { "0", "1", "0", "0" }, "Start");
+        Tile startTile1 = startTile.Rotate(1, "Start Rotate 1");
+        Tile startTile2 = startTile.Rotate(2, "Start Rotate 2");
+        Tile startTile3 = startTile.Rotate(3, "Start Rotate 3");
+
+        Tile endTile = new Tile("end", new string[] { "0", "1", "0", "0" }, "End");
+        Tile endTile1 = endTile.Rotate(1, "End Rotate 1");
+        Tile endTile2 = endTile.Rotate(2, "End Rotate 2");
+        Tile endTile3 = endTile.Rotate(3, "End Rotate 3");
 
 
-
-
-        // Tile tile = new Tile("start", new string[] { "0", "1", "0", "0" }, "Start");
         Tile tile1 = new Tile("empty", new string[] { "0", "0", "0", "0" }, "Empty");
-        Tile tile2 = new Tile("threeways/threeway1", new string[] { "1", "1", "0", "1" }, "Threeway original");
+
+        Tile straightTile = new Tile("straights/straight1", new string[] { "0", "1", "0", "1" }, "Straight original");
+        Tile straightTile1 = straightTile.Rotate(1, "Straight Rotate 1");
+
         Tile tile3 = new Tile("corners/corner1", new string[] { "1", "1", "0", "0" }, "Corner original");
         Tile tiler4 = tile3.Rotate(1, "Corner Rotate 1");
         Tile tiler5 = tile3.Rotate(2, "Corner Rotate 2");
         Tile tiler6 = tile3.Rotate(3, "Corner Rotate 3");
-        Tile tile4 = tile2.Rotate(1, "Rotate 1");
-        Tile tile5 = tile2.Rotate(2, "Rotate 2");
-        Tile tile6 = tile2.Rotate(3, "Rotate 3");
+
+        Tile threeTile = new Tile("threeways/threeway1", new string[] { "1", "1", "0", "1" }, "Threeway original");
+        Tile tile4 = threeTile.Rotate(1, "Threeway Rotate 1");
+        Tile tile5 = threeTile.Rotate(2, "Threeway Rotate 2");
+        Tile tile6 = threeTile.Rotate(3, "Threeway Rotate 3");
+
         Tile tile7 = new Tile("fourways/fourway2", new string[] { "1", "1", "1", "1" }, "4some");
-        mapGenerator.SetTiles(new List<Tile> { tile7, tile1, tile3, tile4, tile5, tile6, tile2, tiler4, tiler5, tiler6 });
-        List<Vector2> paths = mapGenerator.GenerateMap();
-        // // mapGenerator.CollapseCell(0, 0);
-        bool running = true;
-        while (running)
-        {
-            running = mapGenerator.waveFunctionCollapse();
-        }
-        // mapGenerator.GenerateTileRules();
+        Tile tile8 = new Tile("fourways/fourway1", new string[] { "1", "1", "1", "1" }, "4some1");
+        mapGenerator.SetTiles(new List<Tile> { straightTile, straightTile1, startTile, startTile1, startTile2, startTile3, endTile, endTile1, endTile2, endTile3, tile8, tile7, tile1, tile3, tile4, tile5, tile6, threeTile, tiler4, tiler5, tiler6 });
+        List<Tile> EastToWestTiles = new List<Tile> { straightTile, threeTile, tile5, tile7, tile8 };
+        List<Tile> NorthToSouthTiles = new List<Tile> { straightTile1, tile4, tile6, tile7, tile8 };
+        List<Tile> NorthToEastTiles = new List<Tile> { tile3, tile8 };
+        List<Tile> EastToSouthTiles = new List<Tile> { tiler4, tile8 };
+        List<Tile> SouthToWestTiles = new List<Tile> { tiler5, tile8 };
+        List<Tile> WestToNorthTiles = new List<Tile> { tiler6, tile8 };
+        mapGenerator.SetEastToWestTiles(EastToWestTiles);
+        mapGenerator.SetNorthToSouthTiles(NorthToSouthTiles);
+        mapGenerator.SetNorthToEastTiles(NorthToEastTiles);
+        mapGenerator.SetEastToSouthTiles(EastToSouthTiles);
+        mapGenerator.SetSouthToWestTiles(SouthToWestTiles);
+        mapGenerator.SetWestToNorthTiles(WestToNorthTiles);
 
-        // Tile[] tiles = new Tile[] { tile, tile4, tile3, tile5, tile6 };
-        // tile.GenerateRules(tiles);
-        // tile.PrintRules();
+        mapGenerator.GenerateMap();
 
-        // tile.DrawTile(new Vector3(0, 0, 0));
-        // tile2.DrawTile(new Vector3(Map.MODULE_WIDTH, 0, 0));
-
-        // print edge of tile3
-        // string result = "";
-        // result += tiler4.nameID + " edges: ";
-        // foreach (string tile in tiler4.Edges)
-        // {
-        //     result += tile + ", ";
-        // }
-        // Debug.Log(result);
-
-        // tile3.DrawTile(new Vector3(Map.MODULE_WIDTH * 2, 0, 0));
-        // tiler4.DrawTile(new Vector3(Map.MODULE_WIDTH * 3, 0, 0));
-        // tiler5.DrawTile(new Vector3(Map.MODULE_WIDTH * 4, 0, 0));
-        // tiler6.DrawTile(new Vector3(Map.MODULE_WIDTH * 5, 0, 0));
-
-        // UnityEngine.Object.Instantiate(playerPrefab, Map.playerOrigin, Quaternion.identity);
+        UnityEngine.Object.Instantiate(playerPrefab, new Vector3(Map.MODULE_OFFSET, Map.MAP_FLOOR_HEIGHT, Map.MODULE_OFFSET), Quaternion.identity);
         // monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
 
         // path = Map.FindPath(Map.FindSegment(Map.monsterOrigin), Map.FindSegment(Map.playerOrigin));

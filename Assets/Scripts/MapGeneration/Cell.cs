@@ -34,6 +34,69 @@ public class Cell
     {
         collapsed = true;
         chooseOption = possibleOptions[UnityEngine.Random.Range(0, possibleOptions.Count)];
+        while (chooseOption.Contains("Start") || chooseOption.Contains("End"))
+        {
+            chooseOption = possibleOptions[UnityEngine.Random.Range(0, possibleOptions.Count)];
+        }
+        this.possibleOptions = new List<string> { chooseOption };
+    }
+
+    public void Collapse(string option)
+    {
+        if (collapsed)
+        {
+            throw new System.Exception("Cell is already collapsed.");
+        }
+
+        if (!possibleOptions.Contains(option))
+        {
+            throw new System.Exception("Option not in possible options.");
+        }
+
+        collapsed = true;
+        chooseOption = option;
+        this.possibleOptions = new List<string> { chooseOption };
+    }
+
+    public void Collapse(List<string> options)
+    {
+        if (collapsed)
+        {
+            throw new System.Exception("Cell is already collapsed.");
+        }
+
+        if (options.Count == 0)
+        {
+            throw new System.Exception("No options to collapse.");
+        }
+
+        List<string> validOptions = new List<string>();
+        foreach (string option in options)
+        {
+            if (possibleOptions.Contains(option))
+            {
+                validOptions.Add(option);
+            }
+        }
+
+        if (validOptions.Count == 0)
+        {
+            // print valid option
+            string result = "";
+            foreach (string option in possibleOptions)
+            {
+                result += option + " ";
+            }
+            result += "While options to collapse: ";
+            foreach (string option in options)
+            {
+                result += option + " ";
+            }
+            throw new System.Exception("No valid options to collapse. Options: " + result);
+        }
+
+        collapsed = true;
+        chooseOption = validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
         this.possibleOptions = new List<string> { chooseOption };
     }
 

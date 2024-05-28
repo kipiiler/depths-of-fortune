@@ -10,7 +10,7 @@ public static class Map
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;
     public const float MAP_FLOOR_HEIGHT = 0.5f;
-    private const float MODULE_OFFSET = MODULE_WIDTH / 2;
+    public const float MODULE_OFFSET = MODULE_WIDTH / 2;
 
     private static readonly UnityEngine.Object start;
     private static readonly UnityEngine.Object end;
