@@ -36,35 +36,35 @@
       "nameID": "TorchConnect3way"
     },
     {
-      "resoursePath": "torchConnect3way 1",
+      "resoursePath": "torchConnect3way1",
       "edges": ["0", "2", "1", "1"],
       "possible_rotation": [0, 1, 2, 3],
       "weight": 1.0,
       "nameID": "TorchConnect3way1"
     },
     {
-      "resoursePath": "straights/straight1",
+      "resoursePath": "straights/straight",
       "edges": ["0", "1", "0", "1"],
       "possible_rotation": [0, 1],
       "weight": 1.0,
       "nameID": "Straight"
     },
     {
-      "resoursePath": "corners/corner1",
+      "resoursePath": "corners/corner",
       "edges": ["1", "1", "0", "0"],
       "possible_rotation": [0, 1, 2, 3],
       "weight": 1.0,
       "nameID": "Corner1"
     },
     {
-      "resoursePath": "threeways/threeway1",
+      "resoursePath": "threeways/threeway",
       "edges": ["1", "1", "0", "1"],
       "possible_rotation": [0, 1, 2, 3],
       "weight": 1.0,
       "nameID": "ThreeWay1"
     },
     {
-      "resoursePath": "fourways/fourway1",
+      "resoursePath": "fourways/fourway",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0],
       "weight": 1.0,

@@ -14,7 +14,7 @@ using UnityEngine;
 public class MapGenerator
 {
 
-    private const int MAX_TRIED = 1000;
+    private const int MAX_TRIED = 100;
     private int width;
     private int height;
     private Vector2 MapStartCoordinate;
