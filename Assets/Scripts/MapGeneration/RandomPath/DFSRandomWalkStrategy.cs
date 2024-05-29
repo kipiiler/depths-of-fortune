@@ -43,7 +43,6 @@ public class DFSRandomWalkStrategy : RandomWalkStrategy
             }
             result += "\n";
         }
-        Debug.Log("Map being use: \n" + result);
         Stack<Vector2> stack = new Stack<Vector2>();
         stack.Push(start);
         Dictionary<Vector2, Vector2> cameFrom = new Dictionary<Vector2, Vector2>(); // To store the path

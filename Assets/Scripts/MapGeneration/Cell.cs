@@ -41,8 +41,6 @@ public class Cell
             this.chooseOption = ChooseOption(weights, possibleOptions);
         }
 
-        Debug.Log("Choose option: " + chooseOption);
-
         this.possibleOptions = new List<string> { chooseOption };
     }
 

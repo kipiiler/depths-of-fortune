@@ -14,7 +14,7 @@ using UnityEngine;
 public class MapGenerator
 {
 
-    private const int MAX_TRIED = 100;
+    private const int MAX_TRIED = 5;
     private int width;
     private int height;
     private Vector2 MapStartCoordinate;
@@ -114,9 +114,30 @@ public class MapGenerator
         this.randomWalkStrategy = strategy;
     }
 
+    public bool GenerateMap(int attempts)
+    {
+        bool failed = true;
+        int count = 0;
+        while (failed && count < attempts)
+        {
+            try
+            {
+                GenerateMap();
+                failed = false;
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log("Failed to generate map, trying again");
+                count++;
+            }
+        }
+
+        return !failed;
+    }
+
     public void GenerateMap()
     {
-        intitMap();
+        initMap();
         List<Vector2> path = RandomWalkFromStartToEnd();
         bool isPathCollapsed = false;
         int count = 0;
@@ -141,17 +162,11 @@ public class MapGenerator
             Debug.LogError("Unable to guarantees path is collapsed. Please edit your tile set.");
         }
 
-        Debug.Log("Path Collapsed in " + count + " tries");
-
-
         bool isNotCollapseAll = true;
         while (isNotCollapseAll)
         {
             isNotCollapseAll = waveFunctionCollapse();
         }
-
-        Debug.Log("Wave Function Collapse Done");
-
 
         DrawMap();
     }
@@ -161,7 +176,7 @@ public class MapGenerator
         return map;
     }
 
-    private void intitMap()
+    private void initMap()
     {
         for (int i = 0; i < width; i++)
         {
@@ -214,22 +229,6 @@ public class MapGenerator
             tile.GenerateRules(tiles);
             tileRules[tile.nameID] = tile.rules;
         }
-
-        string result = "";
-
-        foreach (KeyValuePair<string, Dictionary<Tile.EdgeDirection, List<Tile>>> entry in tileRules)
-        {
-            result += entry.Key + ":\n";
-            foreach (KeyValuePair<Tile.EdgeDirection, List<Tile>> rule in entry.Value)
-            {
-                result += rule.Key + ": ";
-                foreach (Tile tile in rule.Value)
-                {
-                    result += tile.nameID + ", ";
-                }
-                result += "\n";
-            }
-        }
     }
 
     public void GenerateTileWeights()
@@ -245,14 +244,6 @@ public class MapGenerator
         {
             tileWeights[tile.nameID] = tile.weight / totalWeight;
         }
-
-        string result = "";
-
-        foreach (KeyValuePair<string, double> entry in tileWeights)
-        {
-            result += entry.Key + ": " + entry.Value + "\n";
-        }
-        Debug.Log(result);
     }
 
     private List<Vector2> findSmallestEntropyCells()
@@ -358,7 +349,6 @@ public class MapGenerator
             if ((xDifNext == 1 && yDifNext == 0 && xDifPrev == 0 && yDifPrev == -1) ||
                 (xDifNext == 0 && yDifNext == 1 && xDifPrev == -1 && yDifPrev == 0))
             {
-                // Debug.Log("Corner: Northeast");
                 List<string> options = TileListToStringList(NorthToEastTiles);
                 CollapseCell((int)currentPos.x, (int)currentPos.y, options);
             }
@@ -367,7 +357,6 @@ public class MapGenerator
             if ((xDifNext == 1 && yDifNext == 0 && xDifPrev == 0 && yDifPrev == 1) ||
                 (xDifNext == 0 && yDifNext == -1 && xDifPrev == -1 && yDifPrev == 0))
             {
-                // Debug.Log("Corner: Southeast");
                 List<string> options = TileListToStringList(EastToSouthTiles);
                 CollapseCell((int)currentPos.x, (int)currentPos.y, options);
             }
@@ -376,7 +365,6 @@ public class MapGenerator
             if ((xDifNext == 0 && yDifNext == -1 && xDifPrev == 1 && yDifPrev == 0) ||
                 (xDifNext == -1 && yDifNext == 0 && xDifPrev == 0 && yDifPrev == 1))
             {
-                // Debug.Log("Corner: Southwest");
                 List<string> options = TileListToStringList(SouthToWestTiles);
                 CollapseCell((int)currentPos.x, (int)currentPos.y, options);
             }
@@ -385,7 +373,6 @@ public class MapGenerator
             if ((xDifNext == 0 && yDifNext == 1 && xDifPrev == 1 && yDifPrev == 0) ||
                 (xDifNext == -1 && yDifNext == 0 && xDifPrev == 0 && yDifPrev == -1))
             {
-                // Debug.Log("Corner: Northwest");
                 List<string> options = TileListToStringList(WestToNorthTiles);
                 CollapseCell((int)currentPos.x, (int)currentPos.y, options);
             }
