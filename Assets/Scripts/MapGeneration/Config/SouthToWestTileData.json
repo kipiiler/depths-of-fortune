@@ -6,6 +6,20 @@
       "possible_rotation": [2],
       "weight": 1.0,
       "nameID": "Corner1"
+    },
+    {
+      "resoursePath": "fourways/fourway1",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 1.0,
+      "nameID": "FourWay1"
+    },
+    {
+      "resoursePath": "fourways/fourway2",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 1.0,
+      "nameID": "FourWay2"
     }
   ]
 }
