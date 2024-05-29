@@ -128,6 +128,7 @@ public class MapGenerator
             catch (System.Exception e)
             {
                 Debug.Log("Failed to generate map, trying again");
+                ClearMap();
                 count++;
             }
         }
