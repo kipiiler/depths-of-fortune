@@ -56,7 +56,7 @@ public static class Map
         mapSegments = segments;
         foreach (Segment s in mapSegments)
         {
-            s.Build();
+            // s.Build();
             if (s.type == Segment.Type.START) playerOrigin = s.GetUnityPosition();
         }
         playerOrigin.y += MAP_FLOOR_HEIGHT;
@@ -199,10 +199,11 @@ public static class Map
                 Debug.Log("Binding " + x + " " + z + " to " + adj.x + " " + adj.z);
                 throw new ArgumentException("Cannot bind nonadjacent segments");
             }
-            if (adj.adjacent.Contains(this))
-                throw new ArgumentException("Cannot rebind segments");
-            adjacent.Add(adj);
-            adj.adjacent.Add(this);
+            if (!adj.adjacent.Contains(this))
+            {
+                adjacent.Add(adj);
+                adj.adjacent.Add(this);
+            }
         }
 
         /**

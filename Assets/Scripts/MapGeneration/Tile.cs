@@ -11,7 +11,8 @@ public class Tile
         NORTH = 0,
         EAST = 1,
         SOUTH = 2,
-        WEST = 3
+        WEST = 3,
+        NONE = -1
     }
 
     public string ResourcePath;
@@ -127,7 +128,7 @@ public class Tile
     }
 
 
-    private EdgeDirection GetOpposeDirection(EdgeDirection edge)
+    public static EdgeDirection GetOpposeDirection(EdgeDirection edge)
     {
         if (edge == EdgeDirection.NORTH)
         {

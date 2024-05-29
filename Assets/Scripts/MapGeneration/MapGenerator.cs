@@ -3,6 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// TODO:
+// 1. Using abstraction to mark which tile can be use as special tile: empty, start, end
+// 2. Using abstraction to mark which tile can be use as path building tile: NorthToSouth, EastToWest, NorthToEast, EastToSouth, SouthToWest, WestToNorth
+// 3. Using abstraction rule to define which tile connector is connecting to empty
+// 4. After the path is collapsed, keep trying collapsing to make sure every tile is collapsed. If not, re-generate the path (try catch for no possible tile option)
+// 5. Marking a border around the map with dead end tile
+// 6. Fix current encapsulation issue (public to private)
 public class MapGenerator
 {
 
@@ -489,5 +497,115 @@ public class MapGenerator
     {
         List<Vector2> path = randomWalkStrategy.PerformanceRandomWalk();
         return path;
+    }
+
+    private bool isTwoCellConnected(string name1, string name2, Tile.EdgeDirection direction)
+    {
+        // no need to check if one of them is empty
+        if (name1 == "Empty" || name2 == "Empty")
+        {
+            return false;
+        }
+        Tile tile1 = tiles.Find(t => t.nameID == name1);
+        Tile tile2 = tiles.Find(t => t.nameID == name2);
+        if (tile1.Edges[(int)direction] == "0")
+        {
+            return false;
+        }
+        return tile1.rules[direction].Contains(tile2);
+    }
+
+    // Get direction from source to destination tile
+    private Tile.EdgeDirection GetDirectionFromTile(Vector2 source, Vector2 destination)
+    {
+        if (source.x == destination.x)
+        {
+            if (source.y < destination.y)
+            {
+                return Tile.EdgeDirection.NORTH;
+            }
+            else
+            {
+                return Tile.EdgeDirection.SOUTH;
+            }
+        }
+        else
+        {
+            if (source.x < destination.x)
+            {
+                return Tile.EdgeDirection.EAST;
+            }
+            else
+            {
+                return Tile.EdgeDirection.WEST;
+            }
+        }
+    }
+
+    // @Warning: This function is only worked after all tile collapsed
+    public List<Map.Segment> GetAdjacentMapSegmentList()
+    {
+
+        List<Map.Segment> segmentList = new List<Map.Segment>();
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (grid[i, j].chooseOption == "Empty") continue;
+                Map.Segment segment;
+                if (grid[i, j].chooseOption == "Start")
+                {
+                    segment = new Map.Segment(i, j, 0.0f, Map.Segment.Type.START);
+                }
+                else if (grid[i, j].chooseOption == "End")
+                {
+                    segment = new Map.Segment(i, j, 0.0f, Map.Segment.Type.END);
+
+                }
+                else
+                {
+                    segment = new Map.Segment(i, j, 0.0f, Map.Segment.Type.NORMAL);
+                }
+                segmentList.Add(segment);
+            }
+        }
+
+        // Adding neighbor
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                List<Vector2> neighbors = new List<Vector2>();
+                if (i > 0 && grid[i - 1, j].chooseOption != "Empty")
+                {
+                    neighbors.Add(new Vector2(i - 1, j));
+                }
+                if (i < width - 1 && grid[i + 1, j].chooseOption != "Empty")
+                {
+                    neighbors.Add(new Vector2(i + 1, j));
+                }
+                if (j > 0 && grid[i, j - 1].chooseOption != "Empty")
+                {
+                    neighbors.Add(new Vector2(i, j - 1));
+                }
+                if (j < height - 1 && grid[i, j + 1].chooseOption != "Empty")
+                {
+                    neighbors.Add(new Vector2(i, j + 1));
+                }
+                foreach (Vector2 neighbor in neighbors)
+                {
+                    string name1 = grid[i, j].chooseOption;
+                    string name2 = grid[(int)neighbor.x, (int)neighbor.y].chooseOption;
+                    if (isTwoCellConnected(name1, name2, GetDirectionFromTile(new Vector2(i, j), neighbor)))
+                    {
+                        Map.Segment segment1 = segmentList.Find(s => s.x == i && s.z == j);
+                        Map.Segment segment2 = segmentList.Find(s => s.x == (int)neighbor.x && s.z == (int)neighbor.y);
+                        segment1.BindAdjacent(segment2);
+                    }
+                }
+            }
+        }
+
+        return segmentList;
     }
 }
