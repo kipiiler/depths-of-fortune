@@ -4,8 +4,8 @@ using UnityEngine;
 
 public static class Map
 {
-    public const int MAP_WIDTH = 20;
-    public const int MAP_HEIGHT = 20;
+    public const int MAP_WIDTH = 10;
+    public const int MAP_HEIGHT = 10;
 
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;

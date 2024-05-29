@@ -30,6 +30,7 @@ public class MapGenerator
     private GameObject[,] tileObjects;
 
     private Dictionary<string, Dictionary<Tile.EdgeDirection, List<Tile>>> tileRules;
+    private Dictionary<string, double> tileWeights;
 
     private RandomWalkStrategy randomWalkStrategy;
 
@@ -43,6 +44,7 @@ public class MapGenerator
         this.grid = new Cell[width, height];
         this.randomWalkStrategy = new DFSRandomWalkStrategy(Start, End, map, 0.5f);
         this.tileRules = new Dictionary<string, Dictionary<Tile.EdgeDirection, List<Tile>>>();
+        this.tileWeights = new Dictionary<string, double>();
         this.MapStartCoordinate = new Vector2(0, 0);
 
         // Path building tiles
@@ -141,6 +143,8 @@ public class MapGenerator
         }
 
         Debug.Log("Wave Function Collapse Done");
+
+
         DrawMap();
     }
 
@@ -191,6 +195,7 @@ public class MapGenerator
         }
 
         GenerateTileRules();
+        GenerateTileWeights();
     }
 
     public void GenerateTileRules()
@@ -217,6 +222,29 @@ public class MapGenerator
                 result += "\n";
             }
         }
+    }
+
+    public void GenerateTileWeights()
+    {
+        tileWeights = new Dictionary<string, double>();
+        double totalWeight = 0;
+        foreach (Tile tile in tiles)
+        {
+            totalWeight += tile.weight;
+        }
+
+        foreach (Tile tile in tiles)
+        {
+            tileWeights[tile.nameID] = tile.weight / totalWeight;
+        }
+
+        string result = "";
+
+        foreach (KeyValuePair<string, double> entry in tileWeights)
+        {
+            result += entry.Key + ": " + entry.Value + "\n";
+        }
+        Debug.Log(result);
     }
 
     private List<Vector2> findSmallestEntropyCells()
@@ -364,7 +392,7 @@ public class MapGenerator
 
     public void CollapseCell(int x, int y, List<string> options)
     {
-        grid[x, y].Collapse(options);
+        grid[x, y].Collapse(options, this.tileWeights);
         ConstrainsWaveFunction(new Vector2(x, y));
     }
 
@@ -379,7 +407,7 @@ public class MapGenerator
         Vector2 cell = smallestEntropyCells[UnityEngine.Random.Range(0, smallestEntropyCells.Count)];
         int x = (int)cell.x;
         int y = (int)cell.y;
-        grid[x, y].Collapse();
+        grid[x, y].Collapse(this.tileWeights);
 
         Stack<Vector2> stack = new Stack<Vector2>();
         stack.Push(cell);

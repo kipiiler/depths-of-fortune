@@ -30,16 +30,59 @@ public class Cell
         return neighbors[direction];
     }
 
-    public void Collapse()
+    public void Collapse(Dictionary<string, double> weights)
     {
         collapsed = true;
-        chooseOption = possibleOptions[UnityEngine.Random.Range(0, possibleOptions.Count)];
+
+        this.chooseOption = ChooseOption(weights, possibleOptions);
+
         while (chooseOption.Contains("Start") || chooseOption.Contains("End"))
         {
-            chooseOption = possibleOptions[UnityEngine.Random.Range(0, possibleOptions.Count)];
+            this.chooseOption = ChooseOption(weights, possibleOptions);
         }
+
+        Debug.Log("Choose option: " + chooseOption);
+
         this.possibleOptions = new List<string> { chooseOption };
     }
+
+    private string ChooseOption(Dictionary<string, double> weights, List<string> possibleOptions)
+    {
+        if (possibleOptions.Count == 0)
+        {
+            throw new System.Exception("No options to choose from.");
+            // return possibleOptions[0];/
+        }
+        int p = UnityEngine.Random.Range(0, 100);
+        foreach (string option in possibleOptions)
+        {
+            if (p < weights[option] * 100)
+            {
+                return option;
+            }
+            else
+            {
+                p -= (int)(weights[option] * 100);
+            }
+        }
+
+        // In case something goes wrong, return the first option (fail-safe)
+        try
+        {
+            return possibleOptions[0];
+        }
+        catch (Exception e)
+        {
+            string result = "";
+            foreach (string option in possibleOptions)
+            {
+                result += option + " ";
+            }
+            Debug.Log("Error: " + e + "Options: " + result);
+        }
+        return possibleOptions[0];
+    }
+
 
     public void Collapse(string option)
     {
@@ -58,7 +101,7 @@ public class Cell
         this.possibleOptions = new List<string> { chooseOption };
     }
 
-    public void Collapse(List<string> options)
+    public void Collapse(List<string> options, Dictionary<string, double> weights)
     {
         if (collapsed)
         {
@@ -96,7 +139,7 @@ public class Cell
         }
 
         collapsed = true;
-        chooseOption = validOptions[UnityEngine.Random.Range(0, validOptions.Count)];
+        chooseOption = ChooseOption(weights, validOptions);
         this.possibleOptions = new List<string> { chooseOption };
     }
 
