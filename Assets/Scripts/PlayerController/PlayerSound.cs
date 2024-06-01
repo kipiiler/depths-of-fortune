@@ -8,12 +8,18 @@ public class PlayerSound : MonoBehaviour
     public GameObject walkFootstep;
     public GameObject runFootstep;
     public GameObject attackSound;
+    public GameObject landSound;
+
+    private AudioSource landingSource;
+
+    private bool prevIsGrounded;
     
     private void Awake()
     {
         walkFootstep.SetActive(false);
         runFootstep.SetActive(false);
         attackSound.SetActive(false);
+        landingSource = landSound.GetComponent<AudioSource>();
     }
 
     // Start is called before the first frame update
@@ -25,6 +31,15 @@ public class PlayerSound : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!prevIsGrounded && controller.isGrounded)
+        {
+            Debug.Log("just grounded");
+            landingSource.Play();
+            Sound lSound = new Sound(transform.position, 40f);
+            Sounds.MakeSound(lSound);
+        }
+
+        prevIsGrounded = controller.isGrounded;
 
         if (controller.isGrounded)
         {
@@ -62,6 +77,8 @@ public class PlayerSound : MonoBehaviour
         if (controller.isAttacking)
         {
             attackSound.SetActive(true);
+            Sound atkSound = new Sound(transform.position, 40f);
+            Sounds.MakeSound(atkSound);
         } else
         {
             attackSound.SetActive(false);
