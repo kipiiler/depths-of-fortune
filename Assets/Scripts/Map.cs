@@ -10,8 +10,8 @@ public static class Map
     [NonSerialized]
     public static GameObject player = null;
 
-    public const int MAP_WIDTH = 2;
-    public const int MAP_HEIGHT = 2;
+    public const int MAP_WIDTH = 10;
+    public const int MAP_HEIGHT = 10;
 
     [NonSerialized]
     public static int level = 1;
@@ -43,6 +43,8 @@ public static class Map
     public static Vector3 playerOrigin;
     [NonSerialized]
     public static Vector3 monsterOrigin;
+    [NonSerialized]
+    public static Quaternion playerOriginRotation;
 
     /**
      * Creates a new map class
@@ -81,14 +83,11 @@ public static class Map
     public static void AdvanceLevel()
     {
         GenerateMap();
-        Sounds.Remove(monster);
-        GameObject tmp1 = player;
-        GameObject tmp2 = monster;
-        monster = UnityEngine.Object.Instantiate(monster, monsterOrigin, Quaternion.identity);
-        player = UnityEngine.Object.Instantiate(player, playerOrigin, Quaternion.identity);
-        UnityEngine.Object.Destroy(tmp1);
-        UnityEngine.Object.Destroy(tmp2);
-        Sounds.Add(monster);
+        player.GetComponent<CharacterController>().enabled = false;
+        player.transform.position = playerOrigin;
+        player.transform.rotation = playerOriginRotation;
+        monster.transform.position = monsterOrigin;
+        player.GetComponent<CharacterController>().enabled = true;
     }
 
     public static void GenerateMap()
@@ -96,8 +95,6 @@ public static class Map
         mapGenerator.GenerateMap(10);
         List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         setMap(segments);
-        Debug.Log(playerOrigin);
-        Debug.Log(monsterOrigin);
     }
 
     /**
@@ -107,11 +104,8 @@ public static class Map
     {
         // find player origin and load new map
         mapSegments = segments;
-        foreach (Segment s in mapSegments)
-        {
-            if (s.type == Segment.Type.START) playerOrigin = s.GetUnityPosition();
-        }
-        playerOrigin.y += MAP_FLOOR_HEIGHT;
+        playerOrigin = new Vector3(MODULE_OFFSET, MAP_BASE_Y + MAP_FLOOR_HEIGHT, MODULE_OFFSET);
+        playerOriginRotation = (FindSegment(playerOrigin).Adjacent[0].x != 1) ? Quaternion.Euler(0, 0, 0) : Quaternion.Euler(0, 90, 0);
 
         // spawn monster at furthest point from player
         Vector3 far = playerOrigin;
