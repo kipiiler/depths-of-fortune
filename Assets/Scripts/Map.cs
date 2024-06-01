@@ -1,15 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public static class Map
 {
-    public const int MAP_WIDTH = 10;
-    public const int MAP_HEIGHT = 10;
+    [NonSerialized]
+    public static GameObject monster = null;
+    [NonSerialized]
+    public static GameObject player = null;
+
+    public const int MAP_WIDTH = 2;
+    public const int MAP_HEIGHT = 2;
+
+    [NonSerialized]
+    public static int level = 1;
+
+    [NonSerialized]
+    public static MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
 
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;
     public const float MAP_FLOOR_HEIGHT = 0.5f;
+
+    [NonSerialized]
     public const float MODULE_OFFSET = MODULE_WIDTH / 2;
 
     private static readonly UnityEngine.Object start;
@@ -21,10 +35,13 @@ public static class Map
     private static readonly UnityEngine.Object[] fourWays;
 
     // all the segments in the map
+    [NonSerialized]
     public static List<Segment> mapSegments;
 
     // unity postions to spawn player and monster
+    [NonSerialized]
     public static Vector3 playerOrigin;
+    [NonSerialized]
     public static Vector3 monsterOrigin;
 
     /**
@@ -32,6 +49,23 @@ public static class Map
      */
     static Map()
     {
+        // shouldn't all this be in the mapgenerator constructor?
+        List<Tile> allTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
+        List<Tile> NorthToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToSouthTileData.json");
+        List<Tile> EastToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToWestTileData.json");
+        List<Tile> NorthToEastTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToEastTileData.json");
+        List<Tile> EastToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToSouthTileData.json");
+        List<Tile> SouthToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/SouthToWestTileData.json");
+        List<Tile> WestToNorthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/WestToNorthTileData.json");
+
+        mapGenerator.SetTiles(allTiles);
+        mapGenerator.SetEastToWestTiles(EastToWestTiles);
+        mapGenerator.SetNorthToSouthTiles(NorthToSouthTiles);
+        mapGenerator.SetNorthToEastTiles(NorthToEastTiles);
+        mapGenerator.SetEastToSouthTiles(EastToSouthTiles);
+        mapGenerator.SetSouthToWestTiles(SouthToWestTiles);
+        mapGenerator.SetWestToNorthTiles(WestToNorthTiles);
+
         start = Resources.Load("start");
         end = Resources.Load("end");
         deadEnds = Resources.LoadAll("deadends", typeof(GameObject));
@@ -44,19 +78,37 @@ public static class Map
         monsterOrigin = Vector3.zero;
     }
 
+    public static void AdvanceLevel()
+    {
+        GenerateMap();
+        Sounds.Remove(monster);
+        GameObject tmp1 = player;
+        GameObject tmp2 = monster;
+        monster = UnityEngine.Object.Instantiate(monster, monsterOrigin, Quaternion.identity);
+        player = UnityEngine.Object.Instantiate(player, playerOrigin, Quaternion.identity);
+        UnityEngine.Object.Destroy(tmp1);
+        UnityEngine.Object.Destroy(tmp2);
+        Sounds.Add(monster);
+    }
+
+    public static void GenerateMap()
+    {
+        mapGenerator.GenerateMap(10);
+        List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
+        setMap(segments);
+        Debug.Log(playerOrigin);
+        Debug.Log(monsterOrigin);
+    }
+
     /**
      * Sets the map using the provided list of segments
      */
     public static void setMap(List<Segment> segments)
     {
-        // destroy old map
-        foreach (Segment s in mapSegments) s.Release();
-
         // find player origin and load new map
         mapSegments = segments;
         foreach (Segment s in mapSegments)
         {
-            // s.Build();
             if (s.type == Segment.Type.START) playerOrigin = s.GetUnityPosition();
         }
         playerOrigin.y += MAP_FLOOR_HEIGHT;

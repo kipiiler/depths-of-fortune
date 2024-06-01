@@ -452,6 +452,7 @@ MonoBehaviour:
   isAttacking: 0
   attackCost: 10
   attackCooldownReset: 5
+  interactText: {fileID: 7977440323336870132}
 --- !u!114 &4761807930437776971
 MonoBehaviour:
   m_ObjectHideFlags: 0
