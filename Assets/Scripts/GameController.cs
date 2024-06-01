@@ -43,6 +43,9 @@ public class GameController : MonoBehaviour
         monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
 
         path = Map.FindPath(Map.FindSegment(Map.monsterOrigin), Map.FindSegment(Map.playerOrigin));
+
+        // Add monster as hearer
+        Sounds.Add(monster);
     }
 
     // Update is called once per frame
