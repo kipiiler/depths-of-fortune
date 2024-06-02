@@ -156,6 +156,13 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 setpoints.Push(reverse.Pop().GetUnityPosition());
             }
+
+            // State transition
+            if (GetMonsterRelativeSoundIntensity(lastSound) > SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD)
+            {
+                CurrentState = MonsterState.Aggressive;
+                Debug.Log("Monster is now aggressive...");
+            }
             newSoundFlag = false;  // We have now acted upon the sound
         }
 
@@ -179,13 +186,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
                  Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
         {
             visited.AddFirst(Map.FindSegment(setpoints.Pop()));
-        }
-
-        // State transition
-        if (GetMonsterRelativeSoundIntensity(lastSound) > SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD)
-        {
-            CurrentState = MonsterState.Aggressive;
-            Debug.Log("Monster is now aggressive...");
         }
     }
 
@@ -273,6 +273,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 ambientSound = AGGRESSIVE_AMBIENT_SOUND;
                 break;
         }
+        Debug.Log("Heard sound of intensity " + soundIntensity);
         float soundCoeff = soundIntensity / (ambientSound + soundIntensity);
         if (Random.value < soundCoeff)
         {
