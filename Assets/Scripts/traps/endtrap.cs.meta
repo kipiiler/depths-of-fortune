@@ -3,7 +3,8 @@ guid: f8dfe2477e18c0045ba7589946585c81
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - blackoutScreen: {fileID: 4459864850019384750, guid: 67d5cbbdc317bae4e926d59f9ab9fddc, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
