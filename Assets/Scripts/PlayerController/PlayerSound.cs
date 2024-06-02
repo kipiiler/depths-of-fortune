@@ -7,11 +7,13 @@ public class PlayerSound : MonoBehaviour
     private FirstPersonController controller;
     public GameObject walkFootstep;
     public GameObject runFootstep;
+    public GameObject attackSound;
     
     private void Awake()
     {
         walkFootstep.SetActive(false);
         runFootstep.SetActive(false);
+        attackSound.SetActive(false);
     }
 
     // Start is called before the first frame update
@@ -55,6 +57,14 @@ public class PlayerSound : MonoBehaviour
         {
             walkFootstep.SetActive(false);
             runFootstep.SetActive(false);
+        }
+
+        if (controller.isAttacking)
+        {
+            attackSound.SetActive(true);
+        } else
+        {
+            attackSound.SetActive(false);
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -127,11 +128,15 @@ public class FirstPersonController : MonoBehaviour
     public float torchDuration = 60f;
 
     public bool isAttacking;
+    public float attackCost = 10f;
     
     // Hard coded, should depend on animation clip
     private float attackDuration = 2.333f;
 
+    public float attackCooldownReset = 5f;
+    private float attackCooldown = 0f;
 
+    public TMP_Text interactText;
     #endregion
 
 
@@ -372,14 +377,17 @@ public class FirstPersonController : MonoBehaviour
 
         CheckGround();
 
-        #region Torch
-        if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+        #region Torch            
+        
+        float pickUpDistance = 3f;
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, pickUpDistance))
         {
-            float pickUpDistance = 3f;
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, pickUpDistance))
+            if (raycastHit.transform.TryGetComponent(out WeaponGrabbable grabbable))
             {
-                if (raycastHit.transform.TryGetComponent(out WeaponGrabbable grabbable))
+                interactText.text = "Press E";
+                if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
                 {
+                    interactText.text = "";
                     if (!hasTorch)
                     {
                         // Copy the torch to hand
@@ -395,31 +403,59 @@ public class FirstPersonController : MonoBehaviour
             }
         }
 
-        torchDuration -= Time.deltaTime;
+        if (hasTorch)
+        {
+            torchDuration -= Time.deltaTime;
+        }
         if (torchDuration < 0)
         {
             hasTorch = false;
             Destroy(torch);
             torch = null;
-
+            torchDuration = 0f;
             // Play some sound
         }
 
 
 
-        if (!isAttacking && hasTorch && Input.GetKeyDown(KeyCode.Mouse0))
+        if (attackCooldown == 0f && !isAttacking && hasTorch && Input.GetKeyDown(KeyCode.Mouse0))
         {
             isAttacking = true;
+            torchDuration -= attackCost;
         }
 
 
-        attackDuration -= Time.deltaTime;
-
-        if (attackDuration < 0)
+        if (attackCooldown == 0f)
         {
-            attackDuration = 2.333f;
-            isAttacking = false;
+            attackDuration -= Time.deltaTime;
+
+            if (attackDuration < 0)
+            {
+                attackCooldown = attackCooldownReset;
+                attackDuration = 2.333f;
+                isAttacking = false;
+            }
+        } else
+        {
+            attackCooldown -= Time.deltaTime;
+            if (attackCooldown <= 0f)
+            {
+                attackCooldown = 0f;
+            }
         }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            isAttacking = false;
+            attackCooldown = 0f;
+            attackDuration = 2.333f;
+
+            hasTorch = false;
+            Destroy(torch);
+            torch = null;
+            torchDuration = 0f;
+        }
+
         #endregion
     }
 
