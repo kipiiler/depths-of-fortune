@@ -18,6 +18,6 @@ public class MonsterHearing : MonoBehaviour, IHear
 
     public void RespondToSound(Sound sound)
     {
-        Debug.Log("heard sound from " + sound.pos + " with intensity " + sound.range);
+        Debug.Log("I hear sound from " + sound.pos + " with intensity " + sound.intensity);
     }
 }
