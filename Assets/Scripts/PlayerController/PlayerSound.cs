@@ -8,6 +8,9 @@ public class PlayerSound : MonoBehaviour
     public GameObject walkFootstep;
     public GameObject runFootstep;
     
+    static float SOUND_FREQUENCY = 1f;
+    float lastSoundTimeElapsed;
+    
     private void Awake()
     {
         walkFootstep.SetActive(false);
@@ -18,6 +21,7 @@ public class PlayerSound : MonoBehaviour
     void Start()
     {
         controller = GetComponent<FirstPersonController>();
+        lastSoundTimeElapsed = 0f;
     }
 
     // Update is called once per frame
@@ -35,15 +39,25 @@ public class PlayerSound : MonoBehaviour
             {
                 walkFootstep.SetActive(false);
                 runFootstep.SetActive(true);
-                Sound runSound = new Sound(transform.position, 25f);
-                Sounds.MakeSound(runSound);
+
+                if (lastSoundTimeElapsed <= 0)
+                {
+                    Sound runSound = new Sound(transform.position, 25f);
+                    Sounds.MakeSound(runSound);
+                    lastSoundTimeElapsed = SOUND_FREQUENCY;
+                }
             }
             else if (controller.isWalking)
             {
                 walkFootstep.SetActive(true);
                 runFootstep.SetActive(false);
-                Sound walkSound = new Sound(transform.position, 10f);
-                Sounds.MakeSound(walkSound);
+
+                if (lastSoundTimeElapsed <= 0)
+                {
+                    Sound walkSound = new Sound(transform.position, 10f);
+                    Sounds.MakeSound(walkSound);
+                    lastSoundTimeElapsed = SOUND_FREQUENCY;
+                }
             }
             else
             {
@@ -56,5 +70,7 @@ public class PlayerSound : MonoBehaviour
             walkFootstep.SetActive(false);
             runFootstep.SetActive(false);
         }
+
+        lastSoundTimeElapsed -= Time.deltaTime;
     }
 }

@@ -4,12 +4,12 @@ using UnityEngine;
 public class Sound
 {
 
-    public Sound(Vector3 _pos, float _range)
+    public Sound(Vector3 _pos, float _intensity)
     {
 
         pos = _pos;
 
-        range = _range;
+        intensity = _intensity;
     }
 
     public readonly Vector3 pos;
@@ -17,5 +17,5 @@ public class Sound
     /// <summary>
     /// This the intensity of the sound.
     /// </summary>
-    public readonly float range;
+    public readonly float intensity;
 }

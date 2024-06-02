@@ -8,10 +8,12 @@ public class GameController : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject monsterPrefab;
 
+    private GameObject player;
     private GameObject monster;
 
-    // Monster to player path
-    Stack<Map.Segment> path;
+    Map.Segment playerSegment;
+    Map.Segment monsterSegment;
+    Stack<Map.Segment> monsterToPlayerPath;
 
     // Start is called before the first frame update
     void Start()
@@ -39,26 +41,21 @@ public class GameController : MonoBehaviour
         List<Map.Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         Map.setMap(segments);
 
-        UnityEngine.Object.Instantiate(playerPrefab, new Vector3(Map.MODULE_OFFSET, Map.MAP_FLOOR_HEIGHT, Map.MODULE_OFFSET), Quaternion.identity);
+        player = UnityEngine.Object.Instantiate(playerPrefab, new Vector3(Map.MODULE_OFFSET, Map.MAP_FLOOR_HEIGHT, Map.MODULE_OFFSET), Quaternion.identity);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, Map.monsterOrigin, Quaternion.identity);
 
-        path = Map.FindPath(Map.FindSegment(Map.monsterOrigin), Map.FindSegment(Map.playerOrigin));
+        playerSegment = Map.FindSegment(player.transform.position);
+        monsterSegment = Map.FindSegment(monster.transform.position);
+
+        monsterToPlayerPath = new Stack<Map.Segment>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // // Provide the monster new setpoints to the player
-        if (path.Count > 1)
+        if (monster.GetComponent<MonsterBehavior>().CurrentState == MonsterBehavior.MonsterState.Aggressive)
         {
-            // Check if monster has hit the setpoint
-            if (Vector3.Distance(monster.transform.position, path.Peek().GetUnityPosition()) < 0.4)
-            {
-                Debug.Log("Monster reached the setpoint, queue-ing a new one");
-                path.Pop();
-            }
-
-            monster.GetComponent<MonsterBehavior>().UpdateSetpoint(path.Peek().GetUnityPosition());
+            monster.GetComponent<MonsterBehavior>().playerPosition = player.transform.position;
         }
     }
 }
