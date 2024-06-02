@@ -10,11 +10,11 @@ public static class Map
     [NonSerialized]
     public static GameObject player = null;
 
-    public const int MAP_WIDTH = 3;
-    public const int MAP_HEIGHT = 3;
+    public const int MAP_WIDTH = 10;
+    public const int MAP_HEIGHT = 10;
 
     [NonSerialized]
-    public static int level = 1;
+    public static int level = 0;
 
     [NonSerialized]
     public static MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
@@ -88,6 +88,7 @@ public static class Map
         player.transform.rotation = playerOriginRotation;
         monster.transform.position = monsterOrigin;
         player.GetComponent<CharacterController>().enabled = true;
+        level++;
     }
 
     public static void GenerateMap()
