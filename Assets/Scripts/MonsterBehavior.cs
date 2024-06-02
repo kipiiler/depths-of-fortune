@@ -23,7 +23,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float MIN_ATTACK_DIST = 1f;
     static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
     static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
-    static int AGGRESSIVE_TO_SUSPICIOUS_NACK_THRESHOLD = 5;
+    static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
@@ -35,7 +35,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     // Sound stuff
     Sound lastSound;
     bool newSoundFlag = false;
-    int nackCount = 0;
+    float aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
 
 
     Animator anim;
@@ -191,6 +191,9 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     void Attack()
     {
+        // Acknowledge new sounds
+        if (newSoundFlag) newSoundFlag = false;
+
         if (Vector3.Distance(transform.position, playerPosition) < MIN_ATTACK_DIST)
         {
             // Monster will attack the player
@@ -201,8 +204,10 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (Map.FindSegment(playerPosition) != Map.FindSegment(transform.position))
             {
                 // Continue traveling to the player
-                if (Map.FindSegment(playerPosition) != lastPlayerSegment)
+                Map.Segment currentPlayerSegment = Map.FindSegment(playerPosition);
+                if (currentPlayerSegment != lastPlayerSegment)
                 {
+                    Debug.Log("Updating path...");
                     // Update the path
                     Stack<Map.Segment> reverse = new Stack<Map.Segment>(
                         Map.FindPath(Map.FindSegment(transform.position), Map.FindSegment(playerPosition))
@@ -212,12 +217,14 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     {
                         setpoints.Push(reverse.Pop().GetUnityPosition());
                     }
+                    lastPlayerSegment = currentPlayerSegment;
                 }
 
                 // If we've reached setpoint, pop it from setpoints
                 if (setpoints.Count > 0 &&
                     Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
                 {
+                    Debug.Log("Reached a setpoint");
                     visited.AddFirst(Map.FindSegment(setpoints.Pop()));
                 }
             }
@@ -229,17 +236,15 @@ public class MonsterBehavior : MonoBehaviour, IHear
             }
         }
 
+        // Decrememt aggressive-to-suspicious timer
+        aggressiveLastSoundTimeElapsed -= Time.deltaTime;
+
         // State transition
-        if (nackCount > AGGRESSIVE_TO_SUSPICIOUS_NACK_THRESHOLD)
+        if (aggressiveLastSoundTimeElapsed < 0)
         {
+            aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
             CurrentState = MonsterState.Suspicious;
         }
-    }
-
-    void ReceivePlayerPosition(Vector3 pos)
-    {
-        lastPlayerSegment = Map.FindSegment(playerPosition);
-        playerPosition = pos;
     }
 
     float GetMonsterRelativeSoundIntensity(Sound sound)
@@ -276,11 +281,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
             lastSound = sound;
             newSoundFlag = true;
 
-            if (CurrentState == MonsterState.Aggressive) nackCount = 0;
-        }
-        else if (CurrentState == MonsterState.Aggressive)
-        {
-            nackCount++;
+            // If sound heard, reset timer
+            if (CurrentState == MonsterState.Aggressive) aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
         }
     }
 }
