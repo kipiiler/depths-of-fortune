@@ -34,7 +34,7 @@ public class GameController : MonoBehaviour
         mapGenerator.SetSouthToWestTiles(SouthToWestTiles);
         mapGenerator.SetWestToNorthTiles(WestToNorthTiles);
 
-        mapGenerator.GenerateMap(10);
+        mapGenerator.GenerateMap(2);
 
         List<Map.Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         Map.setMap(segments);
