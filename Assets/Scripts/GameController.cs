@@ -10,10 +10,24 @@ public class GameController : MonoBehaviour
 
     private GameObject player;
     private GameObject monster;
+    private GameObject mapObject;
+
+    private bool toggleMap = false;
 
     // Start is called before the first frame update
     void Start()
     {
+        // find the map object
+        mapObject = GameObject.Find("MapContainer");
+        if (mapObject != null)
+        {
+            mapObject.SetActive(toggleMap);
+        }
+        else
+        {
+            Debug.LogError("MapContainer object not found");
+        }
+
         MapGenerator mapGenerator = new MapGenerator(Map.MAP_WIDTH, Map.MAP_HEIGHT);
 
         List<Tile> allTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
@@ -32,7 +46,7 @@ public class GameController : MonoBehaviour
         mapGenerator.SetSouthToWestTiles(SouthToWestTiles);
         mapGenerator.SetWestToNorthTiles(WestToNorthTiles);
 
-        mapGenerator.GenerateMap(10);
+        mapGenerator.GenerateMap(2);
 
         List<Map.Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         Map.setMap(segments);
@@ -48,6 +62,12 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            Debug.Log("M key was pressed");
+            toggleMap = !toggleMap;
+            mapObject.SetActive(toggleMap);
+        }
         if (monster.GetComponent<MonsterBehavior>().CurrentState == MonsterBehavior.MonsterState.Aggressive)
         {
             monster.GetComponent<MonsterBehavior>().playerPosition = player.transform.position;
