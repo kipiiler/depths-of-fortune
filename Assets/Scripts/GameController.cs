@@ -9,9 +9,23 @@ public class GameController : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject monsterPrefab;
 
+    private GameObject mapObject;
+
+    private bool toggleMap = false;
+
     // Start is called before the first frame update
     void Start()
     {
+        mapObject = GameObject.Find("MapContainer");
+        if (mapObject != null)
+        {
+            mapObject.SetActive(toggleMap);
+        }
+        else
+        {
+            Debug.LogError("MapContainer object not found");
+        }
+
         Map.monster = Instantiate(monsterPrefab);
         Map.player = Instantiate(playerPrefab);
         Map.AdvanceLevel();
@@ -28,7 +42,7 @@ public class GameController : MonoBehaviour
         }
         if (Map.monster.GetComponent<MonsterBehavior>().CurrentState == MonsterBehavior.MonsterState.Aggressive)
         {
-            Map.monster.GetComponent<MonsterBehavior>().playerPosition = player.transform.position;
+            Map.monster.GetComponent<MonsterBehavior>().playerPosition = Map.player.transform.position;
         }
     }
 }
