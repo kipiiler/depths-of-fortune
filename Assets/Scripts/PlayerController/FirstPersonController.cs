@@ -122,7 +122,7 @@ public class FirstPersonController : MonoBehaviour
     private Image blackoutScreen;
     private float curAlpha = 0;
     private float targetAlpha = 0;
-    public float FadeRate = 1f;
+    public float FadeRate = 0.4f;
     private Action OnCompleteCallback = null;
     #endregion
 
@@ -157,6 +157,8 @@ public class FirstPersonController : MonoBehaviour
 
 
     #endregion
+
+    public RenderTexture revealTexture;
 
     public bool isDead;
     private bool disableMovement;
@@ -516,7 +518,7 @@ public class FirstPersonController : MonoBehaviour
         #region Blackout
         if (curAlpha != targetAlpha)
         {
-            curAlpha = Mathf.MoveTowards(curAlpha, targetAlpha, Time.deltaTime);
+            curAlpha = Mathf.MoveTowards(curAlpha, targetAlpha, FadeRate * Time.deltaTime);
             Color color = blackoutScreen.color;
             color.a = curAlpha;
             blackoutScreen.color = color;
@@ -614,6 +616,11 @@ public class FirstPersonController : MonoBehaviour
     {
         targetAlpha = 1f;
         OnCompleteCallback = onComplete;
+    }
+
+    public void ResetMapReveal()
+    {
+        revealTexture.Release();
     }
 
     // Sets isGrounded based on a raycast sent straigth down from the player object
