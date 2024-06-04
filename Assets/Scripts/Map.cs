@@ -59,6 +59,24 @@ public static class Map
         }
     }
 
+    public static void AdvanceLevel()
+    {
+        GenerateMap();
+        player.GetComponent<CharacterController>().enabled = false;
+        player.transform.position = playerOrigin;
+        player.transform.rotation = playerOriginRotation;
+        monster.transform.position = monsterOrigin;
+        player.GetComponent<CharacterController>().enabled = true;
+        level++;
+    }
+
+    public static void GenerateMap()
+    {
+        mapGenerator.GenerateMap(10);
+        List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
+        setMap(segments);
+    }
+
     /**
      * Sets the map using the provided list of segments
      */
