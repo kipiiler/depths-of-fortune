@@ -56,52 +56,16 @@ public class MapGenerator
         this.MapStartCoordinate = new Vector2(0, 0);
 
         // Path building tiles
-        this.NorthToEastTiles = new List<Tile>();
-        this.EastToSouthTiles = new List<Tile>();
-        this.SouthToWestTiles = new List<Tile>();
-        this.WestToNorthTiles = new List<Tile>();
-        this.NorthToSouthTiles = new List<Tile>();
-        this.EastToWestTiles = new List<Tile>();
+        tiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
+        this.NorthToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToSouthTileData.json");
+        this.EastToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToWestTileData.json");
+        this.NorthToEastTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToEastTileData.json");
+        this.EastToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToSouthTileData.json");
+        this.SouthToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/SouthToWestTileData.json");
+        this.WestToNorthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/WestToNorthTileData.json");
 
         // reference to the game objects
         this.tileObjects = new GameObject[width, height];
-    }
-
-    public void SetEastToWestTiles(List<Tile> tiles)
-    {
-        this.EastToWestTiles = tiles;
-    }
-
-    public void SetNorthToSouthTiles(List<Tile> tiles)
-    {
-        this.NorthToSouthTiles = tiles;
-    }
-
-    public void SetNorthToEastTiles(List<Tile> tiles)
-    {
-        this.NorthToEastTiles = tiles;
-    }
-
-    public void SetEastToSouthTiles(List<Tile> tiles)
-    {
-        this.EastToSouthTiles = tiles;
-    }
-
-
-    public void SetSouthToWestTiles(List<Tile> tiles)
-    {
-        this.SouthToWestTiles = tiles;
-    }
-
-
-    public void SetWestToNorthTiles(List<Tile> tiles)
-    {
-        this.WestToNorthTiles = tiles;
-    }
-
-    public void SetTiles(List<Tile> tiles)
-    {
-        this.tiles = tiles;
     }
 
     public void SetMapStartCoordinate(Vector2 coordinate)

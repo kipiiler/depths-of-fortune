@@ -10,8 +10,8 @@ public static class Map
     [NonSerialized]
     public static GameObject player = null;
 
-    public const int MAP_WIDTH = 10;
-    public const int MAP_HEIGHT = 10;
+    public const int MAP_WIDTH = 4;
+    public const int MAP_HEIGHT = 4;
 
     [NonSerialized]
     public static int level = 0;
@@ -26,14 +26,6 @@ public static class Map
     [NonSerialized]
     public const float MODULE_OFFSET = MODULE_WIDTH / 2;
 
-    private static readonly UnityEngine.Object start;
-    private static readonly UnityEngine.Object end;
-    private static readonly UnityEngine.Object[] deadEnds;
-    private static readonly UnityEngine.Object[] corners;
-    private static readonly UnityEngine.Object[] straights;
-    private static readonly UnityEngine.Object[] threeWays;
-    private static readonly UnityEngine.Object[] fourWays;
-
     // all the segments in the map
     [NonSerialized]
     public static List<Segment> mapSegments;
@@ -46,56 +38,25 @@ public static class Map
     [NonSerialized]
     public static Quaternion playerOriginRotation;
 
-    /**
-     * Creates a new map class
-     */
-    static Map()
-    {
-        // shouldn't all this be in the mapgenerator constructor?
-        List<Tile> allTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
-        List<Tile> NorthToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToSouthTileData.json");
-        List<Tile> EastToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToWestTileData.json");
-        List<Tile> NorthToEastTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToEastTileData.json");
-        List<Tile> EastToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToSouthTileData.json");
-        List<Tile> SouthToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/SouthToWestTileData.json");
-        List<Tile> WestToNorthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/WestToNorthTileData.json");
-
-        mapGenerator.SetTiles(allTiles);
-        mapGenerator.SetEastToWestTiles(EastToWestTiles);
-        mapGenerator.SetNorthToSouthTiles(NorthToSouthTiles);
-        mapGenerator.SetNorthToEastTiles(NorthToEastTiles);
-        mapGenerator.SetEastToSouthTiles(EastToSouthTiles);
-        mapGenerator.SetSouthToWestTiles(SouthToWestTiles);
-        mapGenerator.SetWestToNorthTiles(WestToNorthTiles);
-
-        start = Resources.Load("start");
-        end = Resources.Load("end");
-        deadEnds = Resources.LoadAll("deadends", typeof(GameObject));
-        corners = Resources.LoadAll("corners", typeof(GameObject));
-        straights = Resources.LoadAll("straights", typeof(GameObject));
-        threeWays = Resources.LoadAll("threeways", typeof(GameObject));
-        fourWays = Resources.LoadAll("fourways", typeof(GameObject));
-        mapSegments = new List<Segment>();
-        playerOrigin = Vector3.zero;
-        monsterOrigin = Vector3.zero;
-    }
-
     public static void AdvanceLevel()
     {
         GenerateMap();
-        player.GetComponent<CharacterController>().enabled = false;
+        player.GetComponentInChildren<CharacterController>().enabled = false;
         player.transform.position = playerOrigin;
         player.transform.rotation = playerOriginRotation;
         monster.transform.position = monsterOrigin;
-        player.GetComponent<CharacterController>().enabled = true;
+        player.GetComponentInChildren<CharacterController>().enabled = true;
         level++;
+        player.GetComponentInChildren<FirstPersonController>().ResetMapReveal();
     }
 
     public static void GenerateMap()
     {
-        mapGenerator.GenerateMap(10);
-        List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
-        setMap(segments);
+        if (mapGenerator.GenerateMap(10))
+        {
+            List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
+            setMap(segments);
+        }
     }
 
     /**
@@ -198,11 +159,6 @@ public static class Map
 
         public readonly Type type;
 
-        private GameObject instance;
-
-        // severity of trap to be placed here (0 is torch, 1 is max)
-        private float trapIntensity;
-
         /**
          * Creates a new map segment
          * trapIntensity is a deterministic measure of trap deadliness at this tile
@@ -218,7 +174,6 @@ public static class Map
             x = posX;
             z = posZ;
             this.type = type;
-            this.trapIntensity = trapIntensity;
         }
 
         public enum Type
@@ -251,138 +206,6 @@ public static class Map
                 adjacent.Add(adj);
                 adj.adjacent.Add(this);
             }
-        }
-
-        /**
-         * Compiles this using the connected segments and displays it to unity
-         * Once built, do not use bind()
-         * throws InvalidOperationException if this has no adjacent segments
-         */
-        internal void Build()
-        {
-            if (this.type != Type.NORMAL && this.adjacent.Count != 1) throw new InvalidOperationException("Start and End must have only one connection");
-
-            // determine necessary connections
-            bool up = false, down = false, left = false, right = false;
-            foreach (Segment con in adjacent)
-            {
-                if (con.x == x)
-                {
-                    if (con.z == z + 1)
-                    {
-                        up = true;
-                    }
-                    else
-                    {
-                        // con.z == z - 1 (implied)
-                        down = true;
-                    }
-                }
-                else if (con.x == x + 1)
-                {
-                    right = true;
-                }
-                else
-                {
-                    // con.x == x - 1 (implied)
-                    left = true;
-                }
-            }
-
-            // determine type and rotation
-            float rotation;
-            UnityEngine.Object[] segmentSource;
-            switch (this.adjacent.Count)
-            {
-                case 0:
-                    throw new InvalidOperationException("Unconnected segment");
-                case 1:
-                    segmentSource = Map.deadEnds;
-                    if (up) rotation = 270;
-                    else if (down) rotation = 90;
-                    else if (left) rotation = 180;
-                    else rotation = 0;
-                    break;
-                case 2:
-                    if (up && down)
-                    {
-                        rotation = 90;
-                        segmentSource = Map.straights;
-                    }
-                    else if (left && right)
-                    {
-                        rotation = 0;
-                        segmentSource = Map.straights;
-                    }
-                    else if (up && right)
-                    {
-                        rotation = 0;
-                        segmentSource = Map.corners;
-                    }
-                    else if (right && down)
-                    {
-                        rotation = 90;
-                        segmentSource = Map.corners;
-                    }
-                    else if (down && left)
-                    {
-                        rotation = 180;
-                        segmentSource = Map.corners;
-                    }
-                    else if (left && up)
-                    {
-                        rotation = 270;
-                        segmentSource = Map.corners;
-                    }
-                    else
-                    {
-                        throw new InvalidProgramException("Missed corner case");
-                    }
-                    break;
-                case 3:
-                    segmentSource = Map.threeWays;
-                    if (!up) rotation = 180;
-                    else if (!down) rotation = 0;
-                    else if (!left) rotation = 90;
-                    else rotation = 270;
-                    break;
-                case 4:
-                    segmentSource = Map.fourWays;
-                    rotation = 0;
-                    break;
-                default:
-                    // should be unreachable due to bind() restrictions
-                    throw new InvalidProgramException("Invalid segment connection number");
-            }
-
-            // determine the exact type to spawn
-            UnityEngine.Object original;
-            if (this.type == Type.START)
-            {
-                original = Map.start;
-            }
-            else if (this.type == Type.END)
-            {
-                original = Map.end;
-            }
-            else
-            {
-                // select based on trapIntensity
-                int sel = (int)Math.Round(trapIntensity * (segmentSource.Length - 1));
-                original = segmentSource[sel];
-            }
-
-            // spawn the gameobject
-            instance = (GameObject)UnityEngine.Object.Instantiate(original, this.GetUnityPosition(), Quaternion.Euler(0, rotation, 0));
-        }
-
-        /**
-         * Removes this from display
-         */
-        internal void Release()
-        {
-            UnityEngine.Object.Destroy(instance);
-            instance = null;
         }
     }
 }

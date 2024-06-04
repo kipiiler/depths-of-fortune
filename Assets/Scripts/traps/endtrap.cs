@@ -12,7 +12,9 @@ public class endtrap : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             this.gameObject.GetComponent<Collider>().enabled = false;
-            other.gameObject.GetComponentInChildren<FirstPersonController>().SetBlackout(() => Map.AdvanceLevel());
+            other.gameObject.GetComponentInChildren<FirstPersonController>().SetBlackout(() => {
+                Map.AdvanceLevel();
+            });
         }
     }
 }
