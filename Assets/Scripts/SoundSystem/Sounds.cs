@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public static class Sounds
@@ -26,13 +27,5 @@ public static class Sounds
                 hearer.RespondToSound(sound);
             }
         }
-
-        /*
-        Collider[] col = Physics.OverlapSphere(sound.pos, sound.range);
-
-        for (int i = 0; i < col.Length; i++)
-            if (col[i].TryGetComponent(out IHear hearer))
-                hearer.RespondToSound(sound);
-        */
     }
 }

@@ -16,4 +16,19 @@ public class GameController : MonoBehaviour
         Map.player = Instantiate(playerPrefab);
         Map.AdvanceLevel();
     }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            Debug.Log("M key was pressed");
+            toggleMap = !toggleMap;
+            mapObject.SetActive(toggleMap);
+        }
+        if (Map.monster.GetComponent<MonsterBehavior>().CurrentState == MonsterBehavior.MonsterState.Aggressive)
+        {
+            Map.monster.GetComponent<MonsterBehavior>().playerPosition = player.transform.position;
+        }
+    }
 }

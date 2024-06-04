@@ -131,10 +131,18 @@ public class FirstPersonController : MonoBehaviour
     // If hasTorch is false, torch should be null.
     public bool hasTorch;
     private GameObject torch; //The torch held by player. 
+    private Transform fireAlpha;
+    private Transform fireAdd;
+    private Transform fireSpark;
+    private Transform fireGlow;
+    private Light fireLight;
+    private float originalIntensity;
+
 
     public Transform leftHand;
     public LayerMask pickUpLayerMask;
     public float torchDuration = 60f;
+    private float torchCurrDuration;
 
     public bool isAttacking;
     public float attackCost = 10f;
@@ -146,6 +154,8 @@ public class FirstPersonController : MonoBehaviour
     private float attackCooldown = 0f;
 
     public TMP_Text interactText;
+
+
     #endregion
 
 
@@ -163,6 +173,8 @@ public class FirstPersonController : MonoBehaviour
             sprintRemaining = sprintDuration;
             sprintCooldownReset = sprintCooldown;
         }
+
+        torchCurrDuration = torchDuration;
     }
 
     void Start()
@@ -405,40 +417,56 @@ public class FirstPersonController : MonoBehaviour
                     {
                         // Copy the torch to hand
                         torch = grabbable.Grab(leftHand);
+                        Transform fire = torch.transform.GetChild(0).GetChild(0);
+                        fireAlpha = fire.GetChild(0);
+                        fireAdd = fire.GetChild(1);
+                        fireSpark = fire.GetChild(2);
+                        fireGlow = fire.GetChild(3);
+                        fireLight = fire.GetChild(4).GetComponent<Light>();
+                        originalIntensity = fireLight.intensity;
                     } 
 
                     hasTorch = true;
-                    torchDuration = 60f;
+                    torchCurrDuration = torchDuration;
 
                     // Destroy the original torch
                     Destroy(grabbable.gameObject);
                 }
             }
+        } else
+        {
+            interactText.text = "";
         }
 
         if (hasTorch)
         {
-            torchDuration -= Time.deltaTime;
+            torchCurrDuration -= Time.deltaTime;
+
+            Vector3 lightChange = new Vector3(torchCurrDuration / torchDuration, torchCurrDuration / torchDuration, torchCurrDuration / torchDuration);
+            // Reducing the torch intensity
+            fireAlpha.localScale = lightChange;
+            fireAdd.localScale = lightChange;
+            fireGlow.localScale = lightChange;
+            fireSpark.localScale = lightChange;
+            fireLight.intensity = originalIntensity * torchCurrDuration / torchDuration;
+
         }
-        if (torchDuration < 0)
+        if (torchCurrDuration < 0)
         {
             hasTorch = false;
             Destroy(torch);
             torch = null;
-            torchDuration = 0f;
-            // Play some sound
+            torchCurrDuration = 0f;
         }
-
-
 
         if (attackCooldown == 0f && !isAttacking && hasTorch && Input.GetKeyDown(KeyCode.Mouse0))
         {
             isAttacking = true;
-            torchDuration -= attackCost;
+            torchCurrDuration -= attackCost;
         }
 
 
-        if (attackCooldown == 0f)
+        if (attackCooldown == 0f && isAttacking)
         {
             attackDuration -= Time.deltaTime;
 
@@ -448,7 +476,7 @@ public class FirstPersonController : MonoBehaviour
                 attackDuration = 2.333f;
                 isAttacking = false;
             }
-        } else
+        } else if (attackCooldown != 0f && !isAttacking)
         {
             attackCooldown -= Time.deltaTime;
             if (attackCooldown <= 0f)
