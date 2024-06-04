@@ -37,7 +37,6 @@ public class PlayerSound : MonoBehaviour
     {
         if (!prevIsGrounded && controller.isGrounded)
         {
-            Debug.Log("just grounded");
             landingSource.Play();
             Sound lSound = new Sound(transform.position, 40f);
             Sounds.MakeSound(lSound);
