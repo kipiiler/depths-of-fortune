@@ -29,10 +29,6 @@ public class GameController : MonoBehaviour
         Map.monster = Instantiate(monsterPrefab);
         Map.player = Instantiate(playerPrefab);
         Map.AdvanceLevel();
-
-        Map.monster.GetComponent<MonsterBehavior>().player = Map.player.GetComponent<FirstPersonController>();
-
-        Sounds.Add(Map.monster);
     }
 
     // Update is called once per frame

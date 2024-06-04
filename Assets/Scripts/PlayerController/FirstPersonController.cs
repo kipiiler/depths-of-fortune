@@ -1,4 +1,4 @@
-﻿// CHANGE LOG
+// CHANGE LOG
 // 
 // CHANGES || version VERSION
 //
@@ -158,6 +158,8 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    public RenderTexture revealTexture;
+    
     public bool isDead;
     private bool disableMovement;
 
@@ -614,6 +616,11 @@ public class FirstPersonController : MonoBehaviour
     {
         targetAlpha = 1f;
         OnCompleteCallback = onComplete;
+    }
+
+    public void ResetMapReveal()
+    {
+        revealTexture.Release();
     }
 
     // Sets isGrounded based on a raycast sent straigth down from the player object
