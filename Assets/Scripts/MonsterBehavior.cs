@@ -30,6 +30,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     Stack<Vector3> setpoints;
     public Vector3 playerPosition;
     public Map.Segment lastPlayerSegment;
+    public FirstPersonController player;
 
 
     // Sound stuff
@@ -198,6 +199,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // Monster will attack the player
             Debug.Log("Attack!");
+            player.Die();
         }
         else
         {
