@@ -116,6 +116,7 @@ public class MapGenerator
 
     public bool GenerateMap(int attempts)
     {
+        ClearMap();
         bool failed = true;
         int count = 0;
         while (failed && count < attempts)
@@ -125,7 +126,7 @@ public class MapGenerator
                 GenerateMap();
                 failed = false;
             }
-            catch (System.Exception e)
+            catch
             {
                 Debug.Log("Failed to generate map, trying again");
                 ClearMap();
@@ -136,7 +137,7 @@ public class MapGenerator
         return !failed;
     }
 
-    public void GenerateMap()
+    private void GenerateMap()
     {
         initMap();
         List<Vector2> path = RandomWalkFromStartToEnd();
@@ -149,7 +150,7 @@ public class MapGenerator
                 CollapsePath(path);
                 isPathCollapsed = true;
             }
-            catch (Exception e)
+            catch
             {
                 path = RandomWalkFromStartToEnd();
                 Debug.Log("Attempt " + count + " failed, trying again..." + '\n');
@@ -160,7 +161,8 @@ public class MapGenerator
         }
         if (count == MAX_TRIED)
         {
-            Debug.LogError("Unable to guarantees path is collapsed. Please edit your tile set.");
+            Debug.LogError("Unable to guarantees path is collapsed");
+            throw new Exception("just retry map generation");
         }
 
         bool isNotCollapseAll = true;

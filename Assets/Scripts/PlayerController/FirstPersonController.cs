@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -37,6 +38,7 @@ public class FirstPersonController : MonoBehaviour
     private float yaw = 0.0f;
     private float pitch = 0.0f;
     private Image crosshairObject;
+    #endregion
 
     #region Camera Zoom Variables
 
@@ -50,7 +52,6 @@ public class FirstPersonController : MonoBehaviour
     private bool isZoomed = false;
 
     #endregion
-    #endregion
 
     #region Movement Variables
 
@@ -58,6 +59,7 @@ public class FirstPersonController : MonoBehaviour
     public float walkSpeed = 5f;
 
     public bool isWalking = false;
+    #endregion
 
     #region Sprint
 
@@ -115,6 +117,13 @@ public class FirstPersonController : MonoBehaviour
     private Vector3 originalScale;
 
     #endregion
+
+    #region Blackout
+    private Image blackoutScreen;
+    private float curAlpha = 0;
+    private float targetAlpha = 0;
+    public float FadeRate = 1f;
+    private Action OnCompleteCallback = null;
     #endregion
 
     #region Torch
@@ -215,6 +224,10 @@ public class FirstPersonController : MonoBehaviour
             sprintBar.gameObject.SetActive(false);
         }
 
+        #endregion
+
+        #region Blackout
+        blackoutScreen = FindObjectOfType<Image>();
         #endregion
     }
 
@@ -481,9 +494,28 @@ public class FirstPersonController : MonoBehaviour
             hasTorch = false;
             Destroy(torch);
             torch = null;
-            torchCurrDuration = 0f;
+            torchDuration = 0f;
         }
 
+        #endregion
+
+        #region Blackout
+        if (curAlpha != targetAlpha)
+        {
+            curAlpha = Mathf.MoveTowards(curAlpha, targetAlpha, Time.deltaTime);
+            Color color = blackoutScreen.color;
+            color.a = curAlpha;
+            blackoutScreen.color = color;
+            if (curAlpha == targetAlpha)
+            {
+                targetAlpha = 0f;
+                if (OnCompleteCallback != null)
+                {
+                    OnCompleteCallback();
+                    OnCompleteCallback = null;
+                }
+            }
+        }
         #endregion
     }
 
@@ -576,6 +608,15 @@ public class FirstPersonController : MonoBehaviour
         }
 
         #endregion
+    }
+
+    /**
+     * Fades the screen to black, calls the given function, and then fades the screen back
+     */
+    public void SetBlackout(Action onComplete)
+    {
+        targetAlpha = 1f;
+        OnCompleteCallback = onComplete;
     }
 
     // Sets isGrounded based on a raycast sent straigth down from the player object
