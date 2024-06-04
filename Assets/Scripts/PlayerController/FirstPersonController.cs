@@ -150,9 +150,6 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
-    private Camera revealCamera;
-    public Texture2D revealTexture;
-
     #region Blackout
     private Image blackoutScreen;
     private float curAlpha = 0;
@@ -160,6 +157,8 @@ public class FirstPersonController : MonoBehaviour
     public float FadeRate = 1f;
     private Action OnCompleteCallback = null;
     #endregion
+
+    public RenderTexture revealTexture;
 
     private void Awake()
     {
@@ -623,7 +622,7 @@ public class FirstPersonController : MonoBehaviour
 
     public void ResetMapReveal()
     {
-        
+        revealTexture.Release();
     }
 
     // Sets isGrounded based on a raycast sent straigth down from the player object
