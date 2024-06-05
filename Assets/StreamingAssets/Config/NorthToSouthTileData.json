@@ -1,0 +1,39 @@
+{
+  "tiles": [
+    {
+      "resoursePath": "straights/straight1",
+      "edges": ["0", "1", "0", "1"],
+      "possible_rotation": [1],
+      "weight": 1.0,
+      "nameID": "Straight"
+    },
+    {
+      "resoursePath": "fourways/fourway",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 0.75,
+      "nameID": "FourWay1"
+    },
+    {
+      "resoursePath": "fourways/fourway2",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0,1,2,3],
+      "weight": 0.75,
+      "nameID": "FourWay2"
+    },
+    {
+      "resoursePath": "threeways/threeway",
+      "edges": ["1", "1", "0", "1"],
+      "possible_rotation": [1,3],
+      "weight": 1.0,
+      "nameID": "ThreeWay1"
+    },
+    {
+      "resoursePath": "fourways/fourwayAltar",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 0.75,
+      "nameID": "FourWay3"
+    }
+  ]
+}

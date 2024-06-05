@@ -1,0 +1,53 @@
+{
+  "tiles": [
+    {
+      "resoursePath": "corners/corner1",
+      "edges": ["1", "1", "0", "0"],
+      "possible_rotation": [2],
+      "weight": 1.0,
+      "nameID": "Corner1"
+    },
+    {
+      "resoursePath": "corners/cornerRoom",
+      "edges": ["1", "1", "0", "0"],
+      "possible_rotation": [2],
+      "weight": 1.0,
+      "nameID": "Corner2"
+    },
+    {
+      "resoursePath": "corners/fakeCorner",
+      "edges": ["1", "1", "0", "0"],
+      "possible_rotation": [2],
+      "weight": 1.0,
+      "nameID": "Corner3"
+    },
+    {
+      "resoursePath": "fourways/fourway",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 0.75,
+      "nameID": "FourWay1"
+    },
+    {
+      "resoursePath": "fourways/fourway2",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0,1,2,3],
+      "weight": 0.75,
+      "nameID": "FourWay2"
+    },
+    {
+      "resoursePath": "threeways/threeway",
+      "edges": ["1", "1", "0", "1"],
+      "possible_rotation": [3,2],
+      "weight": 1.0,
+      "nameID": "ThreeWay1"
+    },
+    {
+      "resoursePath": "fourways/fourwayAltar",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 0.75,
+      "nameID": "FourWay3"
+    }
+  ]
+}
