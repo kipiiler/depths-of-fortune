@@ -991,6 +991,7 @@ MonoBehaviour:
   CurrentState: 0
   playerPosition: {x: 0, y: 0, z: 0}
   player: {fileID: 0}
+  isStunned: 0
 --- !u!95 &-3454624693608067425
 Animator:
   serializedVersion: 5
@@ -1026,6 +1027,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screamSound: {fileID: 5941268264421288313}
   attackSound: {fileID: 6649170788533360805}
+  hurtSound: {fileID: 1058828105301756601}
 --- !u!65 &1669287170330268417
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1047,7 +1049,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.5, z: 0}
-  hurtSound: {fileID: 1058828105301756601}
 --- !u!1 &3780995374269518678
 GameObject:
   m_ObjectHideFlags: 0

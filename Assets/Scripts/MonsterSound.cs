@@ -31,6 +31,7 @@ public class MonsterSound : MonoBehaviour
 
         if (!prevStunned && monsterBehavior.isStunned)
         {
+            Debug.Log("raaa");
             hurtSound.Play();
         }
 
