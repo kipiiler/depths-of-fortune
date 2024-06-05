@@ -200,7 +200,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // Monster will attack the player
             Debug.Log("Attack!");
-            player.Die();
+            player.Attacked();
         }
         else
         {
