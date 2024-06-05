@@ -36,6 +36,13 @@
       "nameID": "FourWay2"
     },
     {
+      "resoursePath": "fourways/fourway3",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [1],
+      "weight": 0.75,
+      "nameID": "FourWay3"
+    },
+    {
       "resoursePath": "threeways/threeway",
       "edges": ["1", "1", "0", "1"],
       "possible_rotation": [3,2],
@@ -47,7 +54,7 @@
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0],
       "weight": 0.75,
-      "nameID": "FourWay3"
+      "nameID": "FourWayA"
     }
   ]
 }

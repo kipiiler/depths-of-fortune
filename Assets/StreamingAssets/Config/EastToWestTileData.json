@@ -29,11 +29,18 @@
       "nameID": "ThreeWay1"
     },
     {
-      "resoursePath": "fourways/fourwayAltar",
+      "resoursePath": "fourways/fourway3",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0],
       "weight": 0.75,
       "nameID": "FourWay3"
+    },
+    {
+      "resoursePath": "fourways/fourwayAltar",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0],
+      "weight": 0.75,
+      "nameID": "FourWayA"
     }
   ]
 }

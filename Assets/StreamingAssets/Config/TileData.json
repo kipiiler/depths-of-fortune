@@ -102,14 +102,21 @@
       "resoursePath": "fourways/fourway2",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0,1,2,3],
-      "weight": 10.0,
+      "weight": 3.0,
       "nameID": "FourWay2"
     },
     {
       "resoursePath": "fourways/fourwayAltar",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0],
-      "weight": 10.0,
+      "weight": 3.0,
+      "nameID": "FourWayA"
+    },
+    {
+      "resoursePath": "fourways/fourway3",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0,1,2,3],
+      "weight": 3.0,
       "nameID": "FourWay3"
     }
   ]
