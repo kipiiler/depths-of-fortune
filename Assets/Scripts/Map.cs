@@ -104,7 +104,7 @@ public static class Map
             }
         }
         monsterOrigin = far;
-        monsterOrigin.y += MAP_FLOOR_HEIGHT;
+        monsterOrigin.y += MAP_FLOOR_HEIGHT - 0.3f;
     }
 
     /**
