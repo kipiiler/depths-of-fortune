@@ -122,7 +122,7 @@ public class FirstPersonController : MonoBehaviour
     private Image blackoutScreen;
     private float curAlpha = 0;
     private float targetAlpha = 0;
-    public float FadeRate = 1f;
+    public float FadeRate = 0.4f;
     private Action OnCompleteCallback = null;
     #endregion
 
@@ -158,6 +158,15 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    public TMP_Text scoreText;
+
+    public RenderTexture revealTexture;
+
+    public bool isDead;
+    private bool disableMovement;
+
+    public GameObject crosshairGameObj;
+    public GameObject gameoverGameObj;
 
     private void Awake()
     {
@@ -179,8 +188,10 @@ public class FirstPersonController : MonoBehaviour
 
     void Start()
     {
+        gameoverGameObj.SetActive(false);
+        crosshairGameObj.SetActive(true);
 
-        if(lockCursor)
+        if (lockCursor)
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
@@ -260,6 +271,11 @@ public class FirstPersonController : MonoBehaviour
         }
 
         joint.position = head.transform.position;
+        
+        if (isDead)
+        {
+            joint.rotation = head.transform.rotation;
+        }
 
         #region Camera Zoom
 
@@ -307,17 +323,18 @@ public class FirstPersonController : MonoBehaviour
         #endregion
         #endregion
 
+
         #region Sprint
 
-        if(enableSprint)
+        if (enableSprint)
         {
-            if(isSprinting)
+            if (isSprinting)
             {
                 isZoomed = false;
                 playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, sprintFOV, sprintFOVStepTime * Time.deltaTime);
 
                 // Drain sprint remaining while sprinting
-                if(!unlimitedSprint)
+                if (!unlimitedSprint)
                 {
                     sprintRemaining -= 1 * Time.deltaTime;
                     if (sprintRemaining <= 0)
@@ -335,7 +352,7 @@ public class FirstPersonController : MonoBehaviour
 
             // Handles sprint cooldown 
             // When sprint remaining == 0 stops sprint ability until hitting cooldown
-            if(isSprintCooldown)
+            if (isSprintCooldown)
             {
                 sprintCooldown -= 1 * Time.deltaTime;
                 if (sprintCooldown <= 0)
@@ -349,7 +366,7 @@ public class FirstPersonController : MonoBehaviour
             }
 
             // Handles sprintBar 
-            if(useSprintBar && !unlimitedSprint)
+            if (useSprintBar && !unlimitedSprint)
             {
                 float sprintRemainingPercent = sprintRemaining / sprintDuration;
                 sprintBar.transform.localScale = new Vector3(sprintRemainingPercent, 1f, 1f);
@@ -361,7 +378,7 @@ public class FirstPersonController : MonoBehaviour
         #region Jump
 
         // Gets input and calls jump method
-        if(enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
+        if (enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
         {
             Jump();
         }
@@ -401,6 +418,8 @@ public class FirstPersonController : MonoBehaviour
         #endregion
 
         CheckGround();
+        
+        if (!isDead) scoreText.text = "Score: " + Map.CalculateScore().ToString();
 
         #region Torch            
         
@@ -502,7 +521,7 @@ public class FirstPersonController : MonoBehaviour
         #region Blackout
         if (curAlpha != targetAlpha)
         {
-            curAlpha = Mathf.MoveTowards(curAlpha, targetAlpha, Time.deltaTime);
+            curAlpha = Mathf.MoveTowards(curAlpha, targetAlpha, FadeRate * Time.deltaTime);
             Color color = blackoutScreen.color;
             color.a = curAlpha;
             blackoutScreen.color = color;
@@ -517,6 +536,11 @@ public class FirstPersonController : MonoBehaviour
             }
         }
         #endregion
+
+        if (!isDead && Input.GetKey(KeyCode.T))
+        {
+            Die();
+        }
     }
 
     void FixedUpdate()
@@ -545,17 +569,6 @@ public class FirstPersonController : MonoBehaviour
             // All movement calculations shile sprint is active
             if (enableSprint && Input.GetKey(sprintKey) && sprintRemaining > 0f && !isSprintCooldown)
             {
-                /*
-                targetVelocity = transform.TransformDirection(targetVelocity) * sprintSpeed;
-
-                // Apply a force that attempts to reach our target velocity
-                Vector3 velocity = rb.velocity;
-                Vector3 velocityChange = (targetVelocity - velocity);
-                velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-                velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-                velocityChange.y = 0;
-                */
-
 
                 // Player is only moving when valocity change != 0
                 // Makes sure fov change only happens during movement
@@ -589,18 +602,7 @@ public class FirstPersonController : MonoBehaviour
                 {
                     sprintBarCG.alpha -= 3 * Time.deltaTime;
                 }
-                /*
-                targetVelocity = transform.TransformDirection(targetVelocity) * walkSpeed;
 
-                // Apply a force that attempts to reach our target velocity
-                Vector3 velocity = rb.velocity;
-                Vector3 velocityChange = (targetVelocity - velocity);
-                velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-                velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-                velocityChange.y = 0;
-
-                rb.AddForce(velocityChange, ForceMode.VelocityChange);
-                */
                 Vector3 move = transform.right * x + transform.forward * z;
 
                 controller.Move(move * walkSpeed * Time.deltaTime);
@@ -617,6 +619,11 @@ public class FirstPersonController : MonoBehaviour
     {
         targetAlpha = 1f;
         OnCompleteCallback = onComplete;
+    }
+
+    public void ResetMapReveal()
+    {
+        revealTexture.Release();
     }
 
     // Sets isGrounded based on a raycast sent straigth down from the player object
@@ -667,6 +674,26 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    public void Die()
+    {
+        if (!isDead)
+        {
+            // Disable camera and movement
+            isDead = true;
+            hasTorch = false;
+            Destroy(torch);
+            torch = null;
+            cameraCanMove = false;
+            isWalking = false;
+            isSprinting = false;
+            isCrouched = false;
+            playerCanMove = false;
+
+            crosshairGameObj.SetActive(false);
+            gameoverGameObj.SetActive(true);
+        }
+
+    }
 }
 
 

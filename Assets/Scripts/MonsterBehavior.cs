@@ -31,12 +31,14 @@ public class MonsterBehavior : MonoBehaviour, IHear
     Stack<Vector3> setpoints;
     public Vector3 playerPosition;
     public Map.Segment lastPlayerSegment;
+    public FirstPersonController player;
 
 
     // Sound stuff
     Sound lastSound;
     bool newSoundFlag = false;
     float aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
+
 
 
     Animator anim;
@@ -206,6 +208,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // Monster will attack the player
             Debug.Log("Attack!");
+            player.Die();
         }
         else
         {

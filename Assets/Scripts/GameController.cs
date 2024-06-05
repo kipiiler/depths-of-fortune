@@ -26,11 +26,14 @@ public class GameController : MonoBehaviour
             Debug.LogError("MapContainer object not found");
         }
 
-        Map.GenerateMap();
-        Map.monster = Instantiate(monsterPrefab);
-        Map.player = Instantiate(playerPrefab);
-        Sounds.Add(Map.monster);
+        Map.playerPrefab = playerPrefab;
+        Map.monsterPrefab = monsterPrefab;
+
         Map.AdvanceLevel();
+
+        Map.monster.GetComponent<MonsterBehavior>().player = Map.player.GetComponent<FirstPersonController>();
+
+        Sounds.Add(Map.monster);
     }
 
     // Update is called once per frame
@@ -38,7 +41,6 @@ public class GameController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            Debug.Log("M key was pressed");
             toggleMap = !toggleMap;
             mapObject.SetActive(toggleMap);
         }
