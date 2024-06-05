@@ -26,8 +26,9 @@ public class GameController : MonoBehaviour
             Debug.LogError("MapContainer object not found");
         }
 
-        Map.monster = Instantiate(monsterPrefab);
-        Map.player = Instantiate(playerPrefab);
+        Map.playerPrefab = playerPrefab;
+        Map.monsterPrefab = monsterPrefab;
+
         Map.AdvanceLevel();
 
         Map.monster.GetComponent<MonsterBehavior>().player = Map.player.GetComponent<FirstPersonController>();
