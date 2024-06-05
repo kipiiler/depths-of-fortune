@@ -16,6 +16,7 @@ public class LootGrabbable : MonoBehaviour, IGrabbable
 
     public GameObject Grab(Transform grabPoint)
     {
+        Sounds.MakeSound(new Sound(grabPoint.position, 12f));
         return null;
     }
 }
