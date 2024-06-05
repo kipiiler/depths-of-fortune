@@ -20,8 +20,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float MAX_SOUND_INTENSITY = 9f;
     static float MIN_SETPOINT_DIST = 0.4f;
     static float MIN_ATTACK_DIST = 3f;
-    static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
-    static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
+    static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 6f;
+    static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 4f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
 
     public float exploreSpeed = 4f;
