@@ -24,14 +24,14 @@ public class MonsterSound : MonoBehaviour
         if (prevState != MonsterBehavior.MonsterState.Suspicious && monsterBehavior.CurrentState == MonsterBehavior.MonsterState.Suspicious)
         {
             screamSound.Play();
-        } else if (prevState != MonsterBehavior.MonsterState.Aggressive && monsterBehavior.CurrentState == MonsterBehavior.MonsterState.Aggressive)
+        }
+        else if (prevState != MonsterBehavior.MonsterState.Aggressive && monsterBehavior.CurrentState == MonsterBehavior.MonsterState.Aggressive)
         {
             attackSound.Play();
         }
 
         if (!prevStunned && monsterBehavior.isStunned)
         {
-            Debug.Log("monster rahhhh");
             hurtSound.Play();
         }
 

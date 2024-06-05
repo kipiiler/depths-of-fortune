@@ -218,7 +218,6 @@ public static class Map
         {
             if (Math.Abs(x - adj.x) + Math.Abs(z - adj.z) != 1)
             {
-                Debug.Log("Binding " + x + " " + z + " to " + adj.x + " " + adj.z);
                 throw new ArgumentException("Cannot bind nonadjacent segments");
             }
             if (!adj.adjacent.Contains(this))

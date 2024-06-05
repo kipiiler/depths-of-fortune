@@ -175,7 +175,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_AspectMode: 0
-  m_AspectRatio: 1.5453703
+  m_AspectRatio: 0.974359
 --- !u!114 &429603812
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -980,7 +980,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 100
+  orthographic size: 70
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -1005,7 +1005,7 @@ Transform:
   m_GameObject: {fileID: 2029085385}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 100, y: 100, z: 100}
+  m_LocalPosition: {x: 70, y: 100, z: 70}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
