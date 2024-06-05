@@ -82,7 +82,7 @@ public static class Map
 
     public static void AdvanceLevel()
     {
-        GenerateMap();
+        // GenerateMap();
         player.GetComponent<CharacterController>().enabled = false;
         player.transform.position = playerOrigin;
         player.transform.rotation = playerOriginRotation;

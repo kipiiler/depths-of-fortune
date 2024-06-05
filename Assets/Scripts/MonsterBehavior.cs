@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 
 public class MonsterBehavior : MonoBehaviour, IHear
 {
@@ -39,6 +40,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
 
     Animator anim;
+    bool pathfinderIsInstantiated = false;
+    Pathfinder pathfinder;
 
     // Start is called before the first frame update
     void Start()
@@ -47,6 +50,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         anim.SetTrigger("StartWalk");
         CurrentState = MonsterState.Exploratory;
         visited = new LinkedList<Map.Segment>();
+        visited.AddFirst(Map.FindSegment(transform.position));
         setpoints = new Stack<Vector3>();
         setpoints.Push(transform.position);
         lastSound = new Sound(new Vector3(0, 0, 0), 0);
@@ -55,6 +59,12 @@ public class MonsterBehavior : MonoBehaviour, IHear
     // Update is called once per frame
     void Update()
     {
+        if (!pathfinderIsInstantiated)
+        {
+            pathfinder = new Pathfinder(Map.MAP_WIDTH * Map.MODULE_WIDTH, Map.MAP_HEIGHT * Map.MODULE_WIDTH, 100, 100);
+            pathfinderIsInstantiated = true;
+        }
+
         // Process the state
         switch (CurrentState)
         {
@@ -70,19 +80,16 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 break;
         }
 
-        if (setpoints.Count > 0)
+        pathfinder.Update(transform.position);
+        if (pathfinder.HasNextSetpoint())
         {
-            transform.LookAt(setpoints.Peek());
+            transform.LookAt(pathfinder.GetNextSetpoint());
             transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
         }
     }
 
     void Explore() {
-        if (setpoints.Count > 0 &&
-            Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST) {
-            // Remove the old setpoint
-            setpoints.Pop();
-
+        if (!pathfinder.HasNextSetpoint()) {
             // Our new setpoint will be the adjacent segment visited the longest ago
             List<Map.Segment> adj = Map.FindSegment(transform.position).Adjacent;
             List<Map.Segment> oldestVisited = new List<Map.Segment>();
@@ -123,8 +130,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
             // Add this segment to visited
             visited.AddFirst(newSetpoint);
 
-            // Add new setpoint
-            setpoints.Push(newSetpoint.GetUnityPosition());
+            // Update the pathfinder
+            pathfinder.UpdateEndpoint(newSetpoint.GetUnityPosition(), transform.position);
         }
 
         // State transition
@@ -140,6 +147,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 CurrentState = MonsterState.Suspicious;
                 Debug.Log("Monster is now suspicious....");
+                // pathfinder.Update(lastSound.pos, transform.position);
             }
         }
     }
@@ -273,7 +281,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 ambientSound = AGGRESSIVE_AMBIENT_SOUND;
                 break;
         }
-        Debug.Log("Heard sound of intensity " + soundIntensity);
         float soundCoeff = soundIntensity / (ambientSound + soundIntensity);
         if (Random.value < soundCoeff)
         {
@@ -284,6 +291,157 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
             // If sound heard, reset timer
             if (CurrentState == MonsterState.Aggressive) aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
+        }
+    }
+
+    public class Pathfinder
+    {
+        private int[,] grid;
+
+        private static int CAST_Y = 100;
+        
+        private Vector3 endpoint;
+
+        private Stack<Vector3> setpoints;
+
+        public float xUnit;
+        public float zUnit;
+
+        public Pathfinder(float width, float height, int xSubdivisions, int zSubdivisions)
+        {
+            xUnit = width / xSubdivisions;
+            zUnit = height / zSubdivisions;
+            grid = new int[xSubdivisions, zSubdivisions];
+
+            // Raycast
+            for (int i = 0; i < xSubdivisions; i++)
+            {
+                for (int j = 0; j < zSubdivisions; j++)
+                {
+                    RaycastHit[] hits;
+                    hits = Physics.RaycastAll(
+                        new Vector3(
+                            xUnit * (j + 0.5f),
+                            CAST_Y,
+                            zUnit * (i + 0.5f)),
+                        -Vector3.up);
+
+                    if (hits.GetLength(0) == 0)
+                    {
+                        grid[j, i] = 1; //  System.Int32.MaxValue;
+                    }
+                    else
+                    {
+                        bool hitFloor = false;
+                        bool hitObstacle = false;
+                        foreach (RaycastHit hit in hits)
+                        {
+                            hitFloor |= hit.transform.gameObject.CompareTag("Floor");
+                            hitObstacle |= hit.transform.gameObject.CompareTag("Obstacle");
+                        }
+
+                        grid[j, i] = hitFloor && !hitObstacle ? 0 : 1;
+                    }
+                }
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i< grid.GetLength(0); i++)
+            {
+                for(int j=0; j< grid.GetLength(1); j++)
+                {
+                    sb.Append(grid[i,j]);
+                    sb.Append('\t');				   
+                }
+                sb.AppendLine();
+            }
+            Debug.Log(sb.ToString());
+
+            // Instantiate
+            setpoints = new Stack<Vector3>();
+        }
+
+        public void UpdateEndpoint(Vector3 newEndpoint, Vector3 position)
+        {
+            // IF the new endpoint is far from the old endpoint, recompute the setpoints
+            if (Vector3.Distance(endpoint, newEndpoint) > 1) // TODO: Change this!
+            {
+                Debug.Log("Updating setpoints");
+                (int x, int y) src = WorldToGrid(position.x, position.z);
+                (int x, int y) dst = WorldToGrid(newEndpoint.x, newEndpoint.z);
+
+                bool[,] visited = new bool[grid.GetLength(0), grid.GetLength(1)];
+                (int x, int y)[,] prev = new (int x, int y)[grid.GetLength(0), grid.GetLength(1)];
+                Queue<(int x, int y)> queue = new Queue<(int x, int y)>();
+
+                queue.Enqueue(src);
+                visited[(int) src.x, (int) src.y] = true;
+                
+                int[] dr = {0, 0, 1, -1};
+                int[] dc = {1, -1, 0, 0};
+
+                while (queue.Count > 0)
+                {
+                    (int x, int y) curr = queue.Dequeue();
+
+                    if (curr == dst)
+                    {
+                        setpoints.Clear();
+                        while (curr != src)
+                        {
+                            Vector2 prevWorld = GridToWorld(curr.x, curr.y);
+                            setpoints.Push(new Vector3(prevWorld.x, position.y, prevWorld.y));
+                            curr = prev[curr.x, curr.y];
+                        }
+                    }
+
+                    for (int k = 0; k < 4; k++) { // Four directions: up, down, left, right
+                        int ni = (int) curr.x + dr[k];
+                        int nj = (int) curr.y + dc[k];
+                        
+                        // Check if the new cell (ni, nj) is within the grid boundaries
+                        if (ni >= 0 && ni < grid.GetLength(1) &&
+                            nj >= 0 && nj < grid.GetLength(0) &&
+                            !visited[ni, nj]) { 
+                            queue.Enqueue((ni, nj));
+                            prev[ni, nj] = curr;
+                            visited[ni, nj] = true;
+                        }
+                    }
+                }
+            }
+
+            endpoint = newEndpoint;
+        }
+        
+        public void Update(Vector3 position)
+        {
+            // IF the monster is close to the current setpoint, pop it and get the next one.
+            if (setpoints.Count > 0 &&
+                Vector3.Distance(setpoints.Peek(), position) < 0.4)
+            {
+                setpoints.Pop();
+            }
+        }
+
+        public bool HasNextSetpoint()
+        {
+            return setpoints.Count > 0;
+        }
+
+        public Vector3 GetNextSetpoint()
+        {
+            return setpoints.Peek();
+        }
+
+        public Vector2 GridToWorld(int i, int j) {
+            return new Vector2(xUnit * (j + 0.5f),
+                               zUnit * (i + 0.5f));
+        }
+
+        public (int, int) WorldToGrid(float x, float z) {
+            return ((int) Mathf.Round((z / zUnit) - 0.5f),
+                    (int) Mathf.Round((x / xUnit) - 0.5f));
         }
     }
 }

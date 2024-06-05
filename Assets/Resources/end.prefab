@@ -126,7 +126,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8dfe2477e18c0045ba7589946585c81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blackoutScreen: {fileID: 0}
 --- !u!1001 &169943661252184721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -500,6 +499,10 @@ PrefabInstance:
     - target: {fileID: 624773672501546919, guid: aa50862e18c864c4f86eb776cd73070c, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1010340590864244028, guid: aa50862e18c864c4f86eb776cd73070c, type: 3}
+      propertyPath: m_TagString
+      value: Floor
       objectReference: {fileID: 0}
     - target: {fileID: 5706971096275498080, guid: aa50862e18c864c4f86eb776cd73070c, type: 3}
       propertyPath: m_Name
