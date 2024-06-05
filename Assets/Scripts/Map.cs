@@ -55,11 +55,14 @@ public static class Map
     public static void AdvanceLevel()
     {
         GenerateMap();
+
+        Sounds.Remove(monster);
         UnityEngine.Object.Destroy(player);
         UnityEngine.Object.Destroy(monster);
 
         player = UnityEngine.Object.Instantiate(playerPrefab, playerOrigin, playerOriginRotation);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, monsterOrigin, Quaternion.identity);
+        Sounds.Add(monster);
 
         level++;
         player.GetComponentInChildren<FirstPersonController>().ResetMapReveal();
