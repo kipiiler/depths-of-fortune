@@ -13,7 +13,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
     }
 
     // Constants
-    static int MAX_SEGMENT_WEIGHT = 2147483647;
     static float EXPLORE_AMBIENT_SOUND = 20f;
     static float SUSPICIOUS_AMBIENT_SOUND = 8f;
     static float AGGRESSIVE_AMBIENT_SOUND = 1f;
@@ -115,9 +114,9 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
                 // If a segment has not been visited, it is weighted the max
                 if (!found) {
-                    if (highestWeight < MAX_SEGMENT_WEIGHT) {
+                    if (highestWeight < System.Int32.MaxValue) {
                         oldestVisited.Clear();
-                        highestWeight = MAX_SEGMENT_WEIGHT;
+                        highestWeight = System.Int32.MaxValue;
                     }
                     oldestVisited.Add(s);
                 }
@@ -139,12 +138,10 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (soundIntensity > EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD)
             {
                 CurrentState = MonsterState.Aggressive;
-                Debug.Log("Monster is now aggressive....");
             }
             else
             {
                 CurrentState = MonsterState.Suspicious;
-                Debug.Log("Monster is now suspicious....");
             }
         }
     }
@@ -153,14 +150,12 @@ public class MonsterBehavior : MonoBehaviour, IHear
     {
         if (newSoundFlag)
         {
-            Debug.Log("Updating setpoints...");
             pathfinder.UpdateEndpoint(lastSound.pos, transform.position);
 
             // State transition
             if (GetMonsterRelativeSoundIntensity(lastSound) > SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD)
             {
                 CurrentState = MonsterState.Aggressive;
-                Debug.Log("Monster is now aggressive...");
             }
             newSoundFlag = false;  // We have now acted upon the sound
         }
@@ -169,7 +164,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // State transition to explore
             CurrentState = MonsterState.Exploratory;
-            Debug.Log("Monster is now exploratory...");
         }
     }
 
@@ -181,7 +175,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         if (Vector3.Distance(transform.position, playerPosition) < MIN_ATTACK_DIST)
         {
             // Monster will attack the player
-            Debug.Log("Attack!");
             anim.SetTrigger("Attack");
             player.Die();
         }
@@ -231,7 +224,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         if (Random.value < soundCoeff)
         {
             // Sound is acknowledged by the monster, setpoint must change
-            Debug.Log("Acknowledged a sound of intensity " + soundIntensity + " that was " + Vector3.Distance(transform.position, sound.pos) + " away");
             lastSound = sound;
             newSoundFlag = true;
 
@@ -300,7 +292,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
             // IF the new endpoint is far from the old endpoint, recompute the setpoints
             if (Vector3.Distance(endpoint, newEndpoint) > 1) // TODO: Change this!
             {
-                Debug.Log("Updating setpoints");
                 (int x, int y) src = WorldToGrid(position.x, position.z);
                 (int x, int y) dst = WorldToGrid(newEndpoint.x, newEndpoint.z);
 
@@ -331,7 +322,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
                             curr = prev[curr.x, curr.y];
                         }
                         foundPath = true;
-                        Debug.Log("Added " + count + " setpoints");
                         break;
                     }
 
@@ -353,16 +343,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     }
                 }
 
-                if (!foundPath)
-                {
-                    Debug.Log("No path found");
-                }
-
                 endpoint = newEndpoint;
-            }
-            else
-            {
-                Debug.Log("Not moved far enough");
             }
         }
         
