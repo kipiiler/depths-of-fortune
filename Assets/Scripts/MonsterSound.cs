@@ -8,6 +8,8 @@ public class MonsterSound : MonoBehaviour
     public AudioSource screamSound;
     public AudioSource attackSound;
     public AudioSource hurtSound;
+    public AudioSource screechSound;
+    private bool hasScreeched;
 
     private MonsterBehavior.MonsterState prevState;
     private bool prevStunned;
@@ -33,6 +35,17 @@ public class MonsterSound : MonoBehaviour
         if (!prevStunned && monsterBehavior.isStunned)
         {
             hurtSound.Play();
+        }
+
+        if (!hasScreeched && monsterBehavior.CurrentState == MonsterBehavior.MonsterState.Aggressive && Vector3.Distance(transform.position, monsterBehavior.playerPosition) < 30f)
+        {
+            screechSound.Play();
+            hasScreeched = true;
+        }
+
+        if (Vector3.Distance(transform.position, monsterBehavior.playerPosition) > 30f)
+        {
+            hasScreeched = false;
         }
 
         prevState = monsterBehavior.CurrentState;

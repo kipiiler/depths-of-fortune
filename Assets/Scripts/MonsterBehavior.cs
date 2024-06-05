@@ -18,12 +18,15 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float AGGRESSIVE_AMBIENT_SOUND = 1f;
     static float SOUND_FALL_OFF = 0.6f;
     static float MAX_SOUND_INTENSITY = 9f;
-    static int MOVE_SPEED = 4;
     static float MIN_SETPOINT_DIST = 0.4f;
     static float MIN_ATTACK_DIST = 3f;
     static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
     static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
+
+    public float exploreSpeed = 4f;
+    public float chaseSpeed = 6f;
+    private float moveSpeed = 4f;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
@@ -88,7 +91,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (pathfinder.HasNextSetpoint())
             {
                 transform.LookAt(pathfinder.GetNextSetpoint());
-                transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
+                transform.position += transform.forward * moveSpeed * Time.deltaTime;
             }
         }
         else
@@ -115,6 +118,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     }
 
     void Explore() {
+        moveSpeed = exploreSpeed;
         if (!pathfinder.HasNextSetpoint()) {
             // Our new setpoint will be the adjacent segment visited the longest ago
             List<Map.Segment> adj = Map.FindSegment(transform.position).Adjacent;
@@ -177,6 +181,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     void Investigate()
     {
+        moveSpeed = exploreSpeed;
         if (newSoundFlag)
         {
             pathfinder.UpdateEndpoint(lastSound.pos, transform.position);
@@ -198,6 +203,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     void Attack()
     {
+        moveSpeed = chaseSpeed;
         // Acknowledge new sounds
         if (newSoundFlag) newSoundFlag = false;
 
