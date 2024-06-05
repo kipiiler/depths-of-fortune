@@ -27,6 +27,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
+    Map.Segment lastSegment;
     public Vector3 playerPosition;
     public FirstPersonController player;
 
@@ -53,7 +54,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         anim.SetTrigger("StartWalk");
         CurrentState = MonsterState.Exploratory;
         visited = new LinkedList<Map.Segment>();
-        visited.AddFirst(Map.FindSegment(transform.position));
         lastSound = new Sound(new Vector3(0, 0, 0), 0);
     }
 
@@ -84,6 +84,13 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     break;
             }
 
+            Map.Segment currSegment = Map.FindSegment(transform.position);
+            if (currSegment != lastSegment)
+            {
+                visited.AddFirst(currSegment);
+                lastSegment = currSegment;
+            }
+
             pathfinder.Update(transform.position);
             if (pathfinder.HasNextSetpoint())
             {
@@ -98,8 +105,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 stunDuration = 2.5f;
                 isStunned = false;
-                anim.SetTrigger("StartWalk");
-
             }
         }
 
@@ -115,9 +120,10 @@ public class MonsterBehavior : MonoBehaviour, IHear
     }
 
     void Explore() {
-        if (!pathfinder.HasNextSetpoint()) {
+        Map.Segment currSegment = Map.FindSegment(transform.position);
+        while (!pathfinder.HasNextSetpoint()) {
             // Our new setpoint will be the adjacent segment visited the longest ago
-            List<Map.Segment> adj = Map.FindSegment(transform.position).Adjacent;
+            List<Map.Segment> adj = currSegment.Adjacent;
             List<Map.Segment> oldestVisited = new List<Map.Segment>();
             int highestWeight = -1;
             foreach (Map.Segment s in adj) 
@@ -153,15 +159,22 @@ public class MonsterBehavior : MonoBehaviour, IHear
             // If there are multiple old/non-visited segments, randomly choose one
             Map.Segment newSetpoint = oldestVisited[Random.Range(0, oldestVisited.Count)];
 
-            // Add this segment to visited
-            visited.AddFirst(newSetpoint);
-
             // Update the pathfinder
             pathfinder.UpdateEndpoint(newSetpoint.GetUnityPosition(), transform.position);
+
+            if (!pathfinder.HasNextSetpoint())
+            {
+                visited.AddFirst(currSegment);
+                currSegment = newSetpoint;
+            }
         }
 
         // State transition
-        if (newSoundFlag)
+        if (Vector3.Distance(transform.position, playerPosition) < 2)
+        {
+            CurrentState = MonsterState.Aggressive;
+        }
+        else if (newSoundFlag)
         {
             float soundIntensity = GetMonsterRelativeSoundIntensity(lastSound);
             if (soundIntensity > EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD)
@@ -189,7 +202,11 @@ public class MonsterBehavior : MonoBehaviour, IHear
             newSoundFlag = false;  // We have now acted upon the sound
         }
 
-        if (!pathfinder.HasNextSetpoint())
+        if (Vector3.Distance(transform.position, playerPosition) < 2)
+        {
+            CurrentState = MonsterState.Aggressive;
+        }
+        else if (!pathfinder.HasNextSetpoint())
         {
             // State transition to explore
             CurrentState = MonsterState.Exploratory;
@@ -392,7 +409,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // IF the monster is close to the current setpoint, pop it and get the next one.
             while (setpoints.Count > 0 &&
-                Vector3.Distance(setpoints.Peek(), position) < 0.4)
+                    Vector3.Distance(setpoints.Peek(), position) < 0.2)
             {
                 setpoints.Pop();
             }
@@ -414,8 +431,42 @@ public class MonsterBehavior : MonoBehaviour, IHear
         }
 
         public (int, int) WorldToGrid(float x, float z) {
-            return ((int) Mathf.Round((z / zUnit) - 0.5f),
-                    (int) Mathf.Round((x / xUnit) - 0.5f));
+            (int x, int y) gridCoords = ((int) Mathf.Round((z / zUnit) - 0.5f),
+                                         (int) Mathf.Round((x / xUnit) - 0.5f));
+            
+            // Get next best
+            if (grid[gridCoords.y, gridCoords.x] == 1)
+            {
+                // Go up
+                if (gridCoords.y - 1 >= 0 &&
+                    grid[gridCoords.y - 1, gridCoords.x] == 0)
+                {
+                    return (gridCoords.x, gridCoords.y - 1);
+                }
+
+                // Go down
+                if (gridCoords.y + 1 < grid.GetLength(0) &&
+                    grid[gridCoords.y + 1, gridCoords.x] == 0)
+                {
+                    return (gridCoords.x, gridCoords.y + 1);
+                }
+
+                // Go left
+                if (gridCoords.x - 1 >= 0 &&
+                    grid[gridCoords.y, gridCoords.x - 1] == 0)
+                {
+                    return (gridCoords.x - 1, gridCoords.y);
+                }
+
+                // Go right
+                if (gridCoords.y + 1 < grid.GetLength(1) &&
+                    grid[gridCoords.y, gridCoords.x + 1] == 0)
+                {
+                    return (gridCoords.x + 1, gridCoords.y);
+                }
+            }
+            
+            return gridCoords;
         }
     }
 }
