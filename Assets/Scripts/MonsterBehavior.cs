@@ -62,7 +62,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     {
         if (!pathfinderIsInstantiated)
         {
-            pathfinder = new Pathfinder(Map.MAP_WIDTH * Map.MODULE_WIDTH, Map.MAP_HEIGHT * Map.MODULE_WIDTH, 1000, 1000);
+            pathfinder = new Pathfinder(Map.MAP_DIMENSION * Map.MODULE_WIDTH, Map.MAP_DIMENSION * Map.MODULE_WIDTH, 1000, 1000);
             pathfinderIsInstantiated = true;
         }
 
@@ -82,6 +82,13 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 case MonsterState.Aggressive:
                     Attack();
                     break;
+            }
+
+            pathfinder.Update(transform.position);
+            if (pathfinder.HasNextSetpoint())
+            {
+                transform.LookAt(pathfinder.GetNextSetpoint());
+                transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
             }
         }
         else
@@ -104,13 +111,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 attackCooldown = 0f;
             }
-        }
-
-        pathfinder.Update(transform.position);
-        if (pathfinder.HasNextSetpoint())
-        {
-            transform.LookAt(pathfinder.GetNextSetpoint());
-            transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
         }
     }
 
