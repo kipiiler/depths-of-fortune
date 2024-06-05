@@ -23,6 +23,7 @@ public class PlayerAnimation : MonoBehaviour
         anim.SetBool("Crouched", controller.isCrouched);
         anim.SetBool("HasTorch", controller.hasTorch);
         anim.SetBool("Attack", controller.isAttacking);
+        anim.SetBool("Attacked", controller.isAttacked);
         if (controller.isDead)
         {
             anim.SetTrigger("death");
