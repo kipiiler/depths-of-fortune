@@ -18,8 +18,10 @@ public class WeaponCollision : MonoBehaviour
     {
         if (other.tag == "Monster" && controller.isAttacking)
         {
-            // other.GetComponent<Animator>().SetTrigger("Hit");
-            Debug.Log("hit");
+            // other.GetComponent<Animator>().SetTrigger("Stun");
+            // other.GetComponent<MonsterBehavior>().Stun();
+            Debug.Log("Call stun in WeaponCollision.cs");
+
         }
     }
 }

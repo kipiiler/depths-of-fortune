@@ -158,13 +158,15 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    private int health = 2;
+
     public RenderTexture revealTexture;
 
     public bool isDead;
     private bool disableMovement;
 
-    public GameObject crosshairGameObj;
-    public GameObject gameoverGameObj;
+    public Transform crosshairTransform;
+    public Transform gameoverTransform;
 
     private void Awake()
     {
@@ -186,8 +188,10 @@ public class FirstPersonController : MonoBehaviour
 
     void Start()
     {
-        gameoverGameObj.SetActive(false);
-        crosshairGameObj.SetActive(true);
+        gameoverTransform.gameObject.SetActive(false);
+        crosshairTransform.gameObject.SetActive(true);
+
+        crosshairTransform.GetChild(0).gameObject.SetActive(false);
 
         if (lockCursor)
         {
@@ -534,9 +538,10 @@ public class FirstPersonController : MonoBehaviour
         }
         #endregion
 
-        if (!isDead && Input.GetKey(KeyCode.T))
+        // Just for debugging
+        if (!isDead && Input.GetKeyDown(KeyCode.T))
         {
-            Die();
+            Attacked();
         }
     }
 
@@ -623,6 +628,7 @@ public class FirstPersonController : MonoBehaviour
         revealTexture.Release();
     }
 
+
     // Sets isGrounded based on a raycast sent straigth down from the player object
     private void CheckGround()
     {
@@ -671,6 +677,19 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    public void Attacked()
+    {
+        health--;
+        if (health == 0)
+        {
+            Die();
+        } else
+        {
+            // enable Red Vignette
+            crosshairTransform.GetChild(0).gameObject.SetActive(true);
+        }
+    }
+
     public void Die()
     {
         if (!isDead)
@@ -686,8 +705,14 @@ public class FirstPersonController : MonoBehaviour
             isCrouched = false;
             playerCanMove = false;
 
-            crosshairGameObj.SetActive(false);
-            gameoverGameObj.SetActive(true);
+            gameoverTransform.gameObject.SetActive(true);
+            crosshairTransform.gameObject.SetActive(false);
+
+            gameoverTransform.GetChild(2).GetComponent<TMP_Text>().text = "Score: " + (Map.level * 2000);
+
+            lockCursor = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
     }
