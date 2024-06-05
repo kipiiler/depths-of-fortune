@@ -12,6 +12,7 @@ public class MainMenuScript : MonoBehaviour
 
     public void MainMenu()
     {
+        Map.Reset();
         SceneManager.LoadScene(0);
     }
 

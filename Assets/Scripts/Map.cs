@@ -46,9 +46,9 @@ public static class Map
     [NonSerialized]
     public static GameObject monsterPrefab;
 
-    static Map()
+    public static void Reset()
     {
-        startTime = Time.realtimeSinceStartup;
+        level = 0; treasure = 0; startTime = Time.realtimeSinceStartup;
     }
 
     public static void AdvanceLevel()
