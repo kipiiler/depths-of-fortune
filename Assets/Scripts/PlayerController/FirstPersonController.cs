@@ -418,8 +418,8 @@ public class FirstPersonController : MonoBehaviour
         #endregion
 
         CheckGround();
-
-        scoreText.text = "Score: " + Map.CalculateScore().ToString();
+        
+        if (!isDead) scoreText.text = "Score: " + Map.CalculateScore().ToString();
 
         #region Torch            
         
