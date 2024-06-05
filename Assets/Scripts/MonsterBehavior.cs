@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 
 public class MonsterBehavior : MonoBehaviour, IHear
 {
@@ -12,7 +13,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
     }
 
     // Constants
-    static int MAX_SEGMENT_WEIGHT = 2147483647;
     static float EXPLORE_AMBIENT_SOUND = 20f;
     static float SUSPICIOUS_AMBIENT_SOUND = 8f;
     static float AGGRESSIVE_AMBIENT_SOUND = 1f;
@@ -20,16 +20,14 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float MAX_SOUND_INTENSITY = 9f;
     static int MOVE_SPEED = 4;
     static float MIN_SETPOINT_DIST = 0.4f;
-    static float MIN_ATTACK_DIST = 1f;
+    static float MIN_ATTACK_DIST = 3f;
     static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
     static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
-    Stack<Vector3> setpoints;
     public Vector3 playerPosition;
-    public Map.Segment lastPlayerSegment;
     public FirstPersonController player;
 
     public bool isStunned = false;
@@ -45,6 +43,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
 
     Animator anim;
+    bool pathfinderIsInstantiated = false;
+    Pathfinder pathfinder;
 
     // Start is called before the first frame update
     void Start()
@@ -53,17 +53,22 @@ public class MonsterBehavior : MonoBehaviour, IHear
         anim.SetTrigger("StartWalk");
         CurrentState = MonsterState.Exploratory;
         visited = new LinkedList<Map.Segment>();
-        setpoints = new Stack<Vector3>();
-        setpoints.Push(transform.position);
+        visited.AddFirst(Map.FindSegment(transform.position));
         lastSound = new Sound(new Vector3(0, 0, 0), 0);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!pathfinderIsInstantiated)
+        {
+            pathfinder = new Pathfinder(Map.MAP_WIDTH * Map.MODULE_WIDTH, Map.MAP_HEIGHT * Map.MODULE_WIDTH, 1000, 1000);
+            pathfinderIsInstantiated = true;
+        }
 
         if (!isStunned)
         {
+
             // Process the state
             switch (CurrentState)
             {
@@ -78,14 +83,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     Attack();
                     break;
             }
-
-            if (setpoints.Count > 0)
-            {
-                transform.LookAt(setpoints.Peek());
-                transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
-            }
-
-        } else
+        }
+        else
         {
             stunDuration -= Time.deltaTime;
             if (stunDuration < 0)
@@ -106,14 +105,17 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 attackCooldown = 0f;
             }
         }
+
+        pathfinder.Update(transform.position);
+        if (pathfinder.HasNextSetpoint())
+        {
+            transform.LookAt(pathfinder.GetNextSetpoint());
+            transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
+        }
     }
 
     void Explore() {
-        if (setpoints.Count > 0 &&
-            Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST) {
-            // Remove the old setpoint
-            setpoints.Pop();
-
+        if (!pathfinder.HasNextSetpoint()) {
             // Our new setpoint will be the adjacent segment visited the longest ago
             List<Map.Segment> adj = Map.FindSegment(transform.position).Adjacent;
             List<Map.Segment> oldestVisited = new List<Map.Segment>();
@@ -141,9 +143,9 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
                 // If a segment has not been visited, it is weighted the max
                 if (!found) {
-                    if (highestWeight < MAX_SEGMENT_WEIGHT) {
+                    if (highestWeight < System.Int32.MaxValue) {
                         oldestVisited.Clear();
-                        highestWeight = MAX_SEGMENT_WEIGHT;
+                        highestWeight = System.Int32.MaxValue;
                     }
                     oldestVisited.Add(s);
                 }
@@ -154,8 +156,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
             // Add this segment to visited
             visited.AddFirst(newSetpoint);
 
-            // Add new setpoint
-            setpoints.Push(newSetpoint.GetUnityPosition());
+            // Update the pathfinder
+            pathfinder.UpdateEndpoint(newSetpoint.GetUnityPosition(), transform.position);
         }
 
         // State transition
@@ -165,12 +167,10 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (soundIntensity > EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD)
             {
                 CurrentState = MonsterState.Aggressive;
-                Debug.Log("Monster is now aggressive....");
             }
             else
             {
                 CurrentState = MonsterState.Suspicious;
-                Debug.Log("Monster is now suspicious....");
             }
         }
     }
@@ -179,44 +179,20 @@ public class MonsterBehavior : MonoBehaviour, IHear
     {
         if (newSoundFlag)
         {
-            Stack<Map.Segment> reverse = new Stack<Map.Segment>(
-                Map.FindPath(Map.FindSegment(transform.position), Map.FindSegment(lastSound.pos))
-            );
-            setpoints.Clear();
-            while (reverse.Count > 0)
-            {
-                setpoints.Push(reverse.Pop().GetUnityPosition());
-            }
+            pathfinder.UpdateEndpoint(lastSound.pos, transform.position);
 
             // State transition
             if (GetMonsterRelativeSoundIntensity(lastSound) > SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD)
             {
                 CurrentState = MonsterState.Aggressive;
-                Debug.Log("Monster is now aggressive...");
             }
             newSoundFlag = false;  // We have now acted upon the sound
         }
 
-        // Check if we're in the segment already
-        if (Map.FindSegment(transform.position) == Map.FindSegment(lastSound.pos))
+        if (!pathfinder.HasNextSetpoint())
         {
-            if (Vector3.Distance(transform.position, lastSound.pos) < MIN_SETPOINT_DIST)
-            {
-                // State transition to explore
-                CurrentState = MonsterState.Exploratory;
-                Debug.Log("Monster is now exploratory...");
-                setpoints.Push(transform.position);
-            }
-            else
-            {
-                setpoints.Clear();
-                setpoints.Push(lastSound.pos);
-            }
-        }
-        else if (setpoints.Count > 0 &&
-                 Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
-        {
-            visited.AddFirst(Map.FindSegment(setpoints.Pop()));
+            // State transition to explore
+            CurrentState = MonsterState.Exploratory;
         }
     }
 
@@ -230,7 +206,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (attackCooldown <= 0f)
             {
                 // Monster will attack the player
-                Debug.Log("Attack!");
+                anim.SetTrigger("Attack");
                 player.Attacked();
 
                 // Set attack cooldown
@@ -239,39 +215,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         }
         else
         {
-            if (Map.FindSegment(playerPosition) != Map.FindSegment(transform.position))
-            {
-                // Continue traveling to the player
-                Map.Segment currentPlayerSegment = Map.FindSegment(playerPosition);
-                if (currentPlayerSegment != lastPlayerSegment)
-                {
-                    Debug.Log("Updating path...");
-                    // Update the path
-                    Stack<Map.Segment> reverse = new Stack<Map.Segment>(
-                        Map.FindPath(Map.FindSegment(transform.position), Map.FindSegment(playerPosition))
-                    );
-                    setpoints.Clear();
-                    while (reverse.Count > 0)
-                    {
-                        setpoints.Push(reverse.Pop().GetUnityPosition());
-                    }
-                    lastPlayerSegment = currentPlayerSegment;
-                }
-
-                // If we've reached setpoint, pop it from setpoints
-                if (setpoints.Count > 0 &&
-                    Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
-                {
-                    Debug.Log("Reached a setpoint");
-                    visited.AddFirst(Map.FindSegment(setpoints.Pop()));
-                }
-            }
-            else
-            {
-                // Go directly towards the player
-                setpoints.Clear();
-                setpoints.Push(playerPosition);
-            }
+            pathfinder.UpdateEndpoint(playerPosition, transform.position);
         }
 
         // Decrememt aggressive-to-suspicious timer
@@ -317,17 +261,161 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 ambientSound = AGGRESSIVE_AMBIENT_SOUND;
                 break;
         }
-        Debug.Log("Heard sound of intensity " + soundIntensity);
         float soundCoeff = soundIntensity / (ambientSound + soundIntensity);
         if (Random.value < soundCoeff)
         {
             // Sound is acknowledged by the monster, setpoint must change
-            Debug.Log("Acknowledged a sound of intensity " + soundIntensity + " that was " + Vector3.Distance(transform.position, sound.pos) + " away");
             lastSound = sound;
             newSoundFlag = true;
 
             // If sound heard, reset timer
             if (CurrentState == MonsterState.Aggressive) aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
+        }
+    }
+
+    public class Pathfinder
+    {
+        private int[,] grid;
+
+        private static int CAST_Y = 100;
+        
+        private Vector3 endpoint;
+
+        private Stack<Vector3> setpoints;
+
+        public float xUnit;
+        public float zUnit;
+
+        public Pathfinder(float width, float height, int xSubdivisions, int zSubdivisions)
+        {
+            xUnit = width / xSubdivisions;
+            zUnit = height / zSubdivisions;
+            grid = new int[xSubdivisions, zSubdivisions];
+
+            // Raycast
+            for (int i = 0; i < xSubdivisions; i++)
+            {
+                for (int j = 0; j < zSubdivisions; j++)
+                {
+                    RaycastHit[] hits;
+                    hits = Physics.RaycastAll(
+                        new Vector3(
+                            xUnit * (j + 0.5f),
+                            CAST_Y,
+                            zUnit * (i + 0.5f)),
+                        -Vector3.up);
+
+                    if (hits.GetLength(0) == 0)
+                    {
+                        grid[j, i] = 1;
+                    }
+                    else
+                    {
+                        bool hitFloor = false;
+                        bool hitObstacle = false;
+                        foreach (RaycastHit hit in hits)
+                        {
+                            hitFloor |= hit.transform.gameObject.CompareTag("Floor");
+                            hitObstacle |= hit.transform.gameObject.CompareTag("Obstacle");
+                        }
+
+                        grid[j, i] = hitFloor && !hitObstacle ? 0 : 1;
+                    }
+                }
+            }
+
+            // Instantiate
+            setpoints = new Stack<Vector3>();
+        }
+
+        public void UpdateEndpoint(Vector3 newEndpoint, Vector3 position)
+        {
+            // IF the new endpoint is far from the old endpoint, recompute the setpoints
+            if (Vector3.Distance(endpoint, newEndpoint) > 1) // TODO: Change this!
+            {
+                (int x, int y) src = WorldToGrid(position.x, position.z);
+                (int x, int y) dst = WorldToGrid(newEndpoint.x, newEndpoint.z);
+
+                bool[,] visited = new bool[grid.GetLength(0), grid.GetLength(1)];
+                (int x, int y)[,] prev = new (int x, int y)[grid.GetLength(0), grid.GetLength(1)];
+                Queue<(int x, int y)> queue = new Queue<(int x, int y)>();
+
+                queue.Enqueue(src);
+                visited[(int) src.x, (int) src.y] = true;
+                
+                int[] dr = {0, 0, 1, -1};
+                int[] dc = {1, -1, 0, 0};
+                bool foundPath = false;
+
+                while (queue.Count > 0)
+                {
+                    (int x, int y) curr = queue.Dequeue();
+
+                    if (curr == dst)
+                    {
+                        setpoints.Clear();
+                        int count = 0;
+                        while (curr != src)
+                        {
+                            Vector2 prevWorld = GridToWorld(curr.x, curr.y);
+                            setpoints.Push(new Vector3(prevWorld.x, position.y, prevWorld.y));
+                            count++;
+                            curr = prev[curr.x, curr.y];
+                        }
+                        foundPath = true;
+                        break;
+                    }
+
+                    for (int k = 0; k < 4; k++) {
+                        int ni = (int) curr.x + dr[k];
+                        int nj = (int) curr.y + dc[k];
+                        
+                        // Check if the new cell (ni, nj) is within the grid boundaries
+                        if (ni >= 0 && ni < grid.GetLength(1) &&
+                            nj >= 0 && nj < grid.GetLength(0) &&
+                            !visited[ni, nj]) {
+                            if (grid[nj, ni] == 0)
+                            {
+                                queue.Enqueue((ni, nj));
+                                prev[ni, nj] = curr;
+                                visited[ni, nj] = true;
+                            }
+                        }
+                    }
+                }
+
+                endpoint = newEndpoint;
+            }
+        }
+        
+        public void Update(Vector3 position)
+        {
+            // IF the monster is close to the current setpoint, pop it and get the next one.
+            while (setpoints.Count > 0 &&
+                Vector3.Distance(setpoints.Peek(), position) < 0.4)
+            {
+                setpoints.Pop();
+            }
+        }
+
+        public bool HasNextSetpoint()
+        {
+            return setpoints.Count > 0;
+        }
+
+        public Vector3 GetNextSetpoint()
+        {
+            return setpoints.Peek();
+        }
+
+        public Vector2 GridToWorld(int i, int j) {
+            return new Vector2(xUnit * (j + 0.5f),
+                               zUnit * (i + 0.5f));
+        }
+
+        public (int, int) WorldToGrid(float x, float z) {
+            return ((int) Mathf.Round((z / zUnit) - 0.5f),
+                    (int) Mathf.Round((x / xUnit) - 0.5f));
         }
     }
 }
