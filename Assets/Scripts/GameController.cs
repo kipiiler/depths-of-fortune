@@ -41,7 +41,6 @@ public class GameController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            Debug.Log("M key was pressed");
             toggleMap = !toggleMap;
             mapObject.SetActive(toggleMap);
         }
