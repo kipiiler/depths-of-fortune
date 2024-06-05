@@ -61,6 +61,7 @@ public static class Map
 
         player = UnityEngine.Object.Instantiate(playerPrefab, playerOrigin, playerOriginRotation);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, monsterOrigin, Quaternion.identity);
+        monster.GetComponent<MonsterBehavior>().player = player.GetComponentInChildren<FirstPersonController>();
         Sounds.Add(monster);
 
         level++;
