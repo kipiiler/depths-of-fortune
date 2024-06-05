@@ -15,6 +15,10 @@ public static class Map
 
     [NonSerialized]
     public static int level = 0;
+    [NonSerialized]
+    public static int treasure = 0;
+    [NonSerialized]
+    private static float startTime;
 
     [NonSerialized]
     public static MapGenerator mapGenerator = new MapGenerator(MAP_WIDTH, MAP_HEIGHT);
@@ -38,14 +42,25 @@ public static class Map
     [NonSerialized]
     public static Quaternion playerOriginRotation;
 
+    [NonSerialized]
+    public static GameObject playerPrefab;
+    [NonSerialized]
+    public static GameObject monsterPrefab;
+
+    static Map()
+    {
+        startTime = Time.realtimeSinceStartup;
+    }
+
     public static void AdvanceLevel()
     {
         GenerateMap();
-        player.GetComponentInChildren<CharacterController>().enabled = false;
-        player.transform.position = playerOrigin;
-        player.transform.rotation = playerOriginRotation;
-        monster.transform.position = monsterOrigin;
-        player.GetComponentInChildren<CharacterController>().enabled = true;
+        UnityEngine.Object.Destroy(player);
+        UnityEngine.Object.Destroy(monster);
+
+        player = UnityEngine.Object.Instantiate(playerPrefab, playerOrigin, playerOriginRotation);
+        monster = UnityEngine.Object.Instantiate(monsterPrefab, monsterOrigin, Quaternion.identity);
+
         level++;
         player.GetComponentInChildren<FirstPersonController>().ResetMapReveal();
     }
@@ -55,6 +70,11 @@ public static class Map
         mapGenerator.GenerateMap(5);
         List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         setMap(segments);
+    }
+
+    public static int CalculateScore()
+    {
+        return (level - 1) * 1000 + treasure * 250 + (int)(Time.realtimeSinceStartup - startTime);
     }
 
     /**

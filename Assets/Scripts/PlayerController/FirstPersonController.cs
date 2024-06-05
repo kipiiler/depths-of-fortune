@@ -158,6 +158,8 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    public TMP_Text scoreText;
+
     public RenderTexture revealTexture;
 
     public bool isDead;
@@ -416,7 +418,8 @@ public class FirstPersonController : MonoBehaviour
         #endregion
 
         CheckGround();
-      
+        
+        if (!isDead) scoreText.text = "Score: " + Map.CalculateScore().ToString();
 
         #region Torch            
         
