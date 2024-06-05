@@ -7,8 +7,10 @@ public class MonsterSound : MonoBehaviour
     private MonsterBehavior monsterBehavior;
     public AudioSource screamSound;
     public AudioSource attackSound;
+    public AudioSource hurtSound;
 
     private MonsterBehavior.MonsterState prevState;
+    private bool prevStunned;
 
     // Start is called before the first frame update
     void Start()
@@ -27,6 +29,13 @@ public class MonsterSound : MonoBehaviour
             attackSound.Play();
         }
 
+        if (!prevStunned && monsterBehavior.isStunned)
+        {
+            Debug.Log("monster rahhhh");
+            hurtSound.Play();
+        }
+
         prevState = monsterBehavior.CurrentState;
+        prevStunned = monsterBehavior.isStunned;
     }
 }

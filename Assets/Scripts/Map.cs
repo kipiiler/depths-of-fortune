@@ -10,8 +10,8 @@ public static class Map
     [NonSerialized]
     public static GameObject player = null;
 
-    public const int MAP_WIDTH = 10;
-    public const int MAP_HEIGHT = 10;
+    public const int MAP_WIDTH = 5;
+    public const int MAP_HEIGHT = 5;
 
     [NonSerialized]
     public static int level = 0;

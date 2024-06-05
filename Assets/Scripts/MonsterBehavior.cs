@@ -32,6 +32,10 @@ public class MonsterBehavior : MonoBehaviour, IHear
     public Map.Segment lastPlayerSegment;
     public FirstPersonController player;
 
+    public bool isStunned = false;
+    private float stunDuration = 3f;
+
+    private float attackCooldown;
 
     // Sound stuff
     Sound lastSound;
@@ -57,25 +61,50 @@ public class MonsterBehavior : MonoBehaviour, IHear
     // Update is called once per frame
     void Update()
     {
-        // Process the state
-        switch (CurrentState)
-        {
-            case MonsterState.Exploratory:
-                Explore();
-                break;
 
-            case MonsterState.Suspicious:
-                Investigate();
-                break;
-            case MonsterState.Aggressive:
-                Attack();
-                break;
+        if (!isStunned)
+        {
+            // Process the state
+            switch (CurrentState)
+            {
+                case MonsterState.Exploratory:
+                    Explore();
+                    break;
+
+                case MonsterState.Suspicious:
+                    Investigate();
+                    break;
+                case MonsterState.Aggressive:
+                    Attack();
+                    break;
+            }
+
+            if (setpoints.Count > 0)
+            {
+                transform.LookAt(setpoints.Peek());
+                transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
+            }
+
+        } else
+        {
+            stunDuration -= Time.deltaTime;
+            if (stunDuration < 0)
+            {
+                stunDuration = 2.5f;
+                isStunned = false;
+                anim.SetTrigger("StartWalk");
+
+            }
         }
 
-        if (setpoints.Count > 0)
+        if (attackCooldown > 0f)
         {
-            transform.LookAt(setpoints.Peek());
-            transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
+            attackCooldown -= Time.deltaTime;
+
+            if (attackCooldown <= 0f)
+            {
+                attackCooldown = 0f;
+            }
         }
     }
 
@@ -198,9 +227,15 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
         if (Vector3.Distance(transform.position, playerPosition) < MIN_ATTACK_DIST)
         {
-            // Monster will attack the player
-            Debug.Log("Attack!");
-            player.Attacked();
+            if (attackCooldown <= 0f)
+            {
+                // Monster will attack the player
+                Debug.Log("Attack!");
+                player.Attacked();
+
+                // Set attack cooldown
+                attackCooldown = 5f;
+            }
         }
         else
         {
@@ -248,6 +283,12 @@ public class MonsterBehavior : MonoBehaviour, IHear
             aggressiveLastSoundTimeElapsed = AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD;
             CurrentState = MonsterState.Suspicious;
         }
+    }
+
+    public void Stunned()
+    {
+        isStunned = true;
+        anim.SetTrigger("Stunned");
     }
 
     float GetMonsterRelativeSoundIntensity(Sound sound)
