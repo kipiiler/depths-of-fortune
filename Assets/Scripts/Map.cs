@@ -24,7 +24,7 @@ public static class Map
 
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;
-    public const float MAP_FLOOR_HEIGHT = 0.5f;
+    public const float MAP_FLOOR_HEIGHT = 0.1f;
 
     [NonSerialized]
     public const float MODULE_OFFSET = MODULE_WIDTH / 2;

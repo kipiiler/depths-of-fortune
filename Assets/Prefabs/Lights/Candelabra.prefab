@@ -44,6 +44,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Candelabra Parent 001
       objectReference: {fileID: 0}
+    - target: {fileID: 857345001543193393, guid: f788699e56a01e64ebc9590bf70346c7, type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2457377870253843146, guid: f788699e56a01e64ebc9590bf70346c7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.328
+      objectReference: {fileID: 0}
     - target: {fileID: 7975666200123183704, guid: f788699e56a01e64ebc9590bf70346c7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
