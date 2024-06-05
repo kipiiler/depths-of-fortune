@@ -36,6 +36,7 @@ public class MapGenerator
     private List<Tile> WestToNorthTiles;
 
     private GameObject[,] tileObjects;
+    private List<GameObject> wallObjects;
 
     private Dictionary<string, Dictionary<Tile.EdgeDirection, List<Tile>>> tileRules;
     private Dictionary<string, double> tileWeights;
@@ -66,6 +67,7 @@ public class MapGenerator
 
         // reference to the game objects
         this.tileObjects = new GameObject[width, height];
+        this.wallObjects = new List<GameObject>();
     }
 
     public void SetMapStartCoordinate(Vector2 coordinate)
@@ -136,6 +138,76 @@ public class MapGenerator
         }
 
         DrawMap();
+        DrawWalls();
+    }
+
+    private void DrawWall(Vector3 position, Quaternion rotation)
+    {
+        GameObject wall = GameObject.Instantiate(Resources.Load("BigBoyWall"), position, rotation) as GameObject;
+        wallObjects.Add(wall);
+    }
+
+    public void DrawWalls()
+    {
+        // south wall only draw the wall if the tile is not empty
+        for (int i = 0; i < width; i++)
+        {
+            string option = grid[i, 0].chooseOption;
+            // find the tile
+            Tile tile = tiles.Find(t => t.nameID == option);
+
+            string connector = tile.Edges[(int)Tile.EdgeDirection.SOUTH];
+
+            if (connector != "0")
+            {
+                DrawWall(new Vector3(MapStartCoordinate.x + i * Map.MODULE_WIDTH + Map.MODULE_OFFSET, Map.MAP_FLOOR_HEIGHT, MapStartCoordinate.y), Quaternion.identity);
+            }
+        }
+
+        // north wall only draw the wall if the tile is not empty
+        for (int i = 0; i < width; i++)
+        {
+            string option = grid[i, height - 1].chooseOption;
+            // find the tile
+            Tile tile = tiles.Find(t => t.nameID == option);
+
+            string connector = tile.Edges[(int)Tile.EdgeDirection.NORTH];
+
+            if (connector != "0")
+            {
+                DrawWall(new Vector3(MapStartCoordinate.x + i * Map.MODULE_WIDTH + Map.MODULE_OFFSET, Map.MAP_FLOOR_HEIGHT, MapStartCoordinate.y + height * Map.MODULE_WIDTH), Quaternion.identity);
+            }
+        }
+
+        // west wall only draw the wall if the tile is not empty
+        for (int i = 0; i < height; i++)
+        {
+            string option = grid[0, i].chooseOption;
+            // find the tile
+            Tile tile = tiles.Find(t => t.nameID == option);
+
+            string connector = tile.Edges[(int)Tile.EdgeDirection.WEST];
+
+            if (connector != "0")
+            {
+                DrawWall(new Vector3(MapStartCoordinate.x, Map.MAP_FLOOR_HEIGHT, MapStartCoordinate.y + i * Map.MODULE_WIDTH + Map.MODULE_OFFSET), Quaternion.Euler(0, 90, 0));
+            }
+        }
+
+        // east wall only draw the wall if the tile is not empty
+        for (int i = 0; i < height; i++)
+        {
+            string option = grid[width - 1, i].chooseOption;
+            // find the tile
+            Tile tile = tiles.Find(t => t.nameID == option);
+
+            string connector = tile.Edges[(int)Tile.EdgeDirection.EAST];
+
+            if (connector != "0")
+            {
+                DrawWall(new Vector3(MapStartCoordinate.x + width * Map.MODULE_WIDTH, Map.MAP_FLOOR_HEIGHT, MapStartCoordinate.y + i * Map.MODULE_WIDTH + Map.MODULE_OFFSET), Quaternion.Euler(0, 90, 0));
+            }
+        }
     }
 
     public string[,] GetMap()
@@ -443,6 +515,14 @@ public class MapGenerator
                 {
                     GameObject.Destroy(tileObjects[i, j]);
                 }
+            }
+        }
+
+        if (wallObjects.Count > 0)
+        {
+            foreach (GameObject wall in wallObjects)
+            {
+                GameObject.Destroy(wall);
             }
         }
     }

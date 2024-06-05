@@ -67,7 +67,7 @@ public static class Map
 
     public static void GenerateMap()
     {
-        mapGenerator.GenerateMap(10);
+        mapGenerator.GenerateMap(5);
         List<Segment> segments = mapGenerator.GetAdjacentMapSegmentList();
         setMap(segments);
     }
