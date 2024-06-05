@@ -35,6 +35,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     public FirstPersonController player;
 
     public bool isStunned = false;
+    public bool isAttacking = false;
     private float stunDuration = 3f;
 
     private float attackCooldown;
@@ -231,6 +232,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (attackCooldown <= 0f)
             {
                 // Monster will attack the player
+                isAttacking = true;
                 anim.SetTrigger("Attack");
                 player.Attacked();
 
