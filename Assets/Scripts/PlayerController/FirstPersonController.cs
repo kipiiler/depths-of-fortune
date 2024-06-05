@@ -465,24 +465,23 @@ public class FirstPersonController : MonoBehaviour
                         Destroy(grabbable.gameObject);
                     }
                 }
-            }
-<<<<<<< Assets/Scripts/PlayerController/FirstPersonController.cs
-            else if (raycastHit.transform.TryGetComponent(out LootGrabbable lootGrabbable))
-            {
-                interactText.text = "Press E";
-                if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+                else if (raycastHit.transform.TryGetComponent(out LootGrabbable lootGrabbable))
                 {
-                    interactText.text = "";
-                    lootGrabbable.Grab(leftHand);
-                    Destroy(lootGrabbable.gameObject);
-                    Map.treasure++;
-                    lootSound.Play();
+                    interactText.text = "Press E";
+                    if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+                    {
+                        interactText.text = "";
+                        lootGrabbable.Grab(leftHand);
+                        Destroy(lootGrabbable.gameObject);
+                        Map.treasure++;
+                        lootSound.Play();
+                    }
                 }
             }
-
-        } else
-        {
-            interactText.text = "";
+            else
+            {
+                interactText.text = "";
+            }
 
             if (hasTorch)
             {

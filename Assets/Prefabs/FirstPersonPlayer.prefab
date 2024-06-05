@@ -1356,11 +1356,12 @@ MonoBehaviour:
   attackCost: 10
   attackCooldownReset: 5
   interactText: {fileID: 7977440323336870132}
+  isAttacked: 0
   scoreText: {fileID: 2152934179638751173}
   revealTexture: {fileID: 8400000, guid: 963088da7179a5f41bbef9900ead7fc1, type: 2}
   isDead: 0
-  crosshairGameObj: {fileID: 4459864851551516604}
-  gameoverGameObj: {fileID: 1752431037505067650}
+  crosshairTransform: {fileID: 4459864851551516607}
+  gameoverTransform: {fileID: 4459864851551516607}
   lootSound: {fileID: -2671558003505551825}
 --- !u!114 &4761807930437776971
 MonoBehaviour:
