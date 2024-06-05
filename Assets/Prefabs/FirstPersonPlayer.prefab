@@ -1359,7 +1359,7 @@ MonoBehaviour:
   revealTexture: {fileID: 8400000, guid: 963088da7179a5f41bbef9900ead7fc1, type: 2}
   isDead: 0
   crosshairTransform: {fileID: 4459864851551516607}
-  gameoverTransform: {fileID: 4459864851551516607}
+  gameoverTransform: {fileID: 4202847468556777557}
   lootSound: {fileID: -2671558003505551825}
 --- !u!114 &4761807930437776971
 MonoBehaviour:
