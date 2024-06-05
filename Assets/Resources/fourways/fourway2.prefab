@@ -128,6 +128,7 @@ Transform:
   - {fileID: 2780643783257813621}
   - {fileID: 4238301429565667787}
   - {fileID: 1833568816176332989}
+  - {fileID: 6138746106810882169}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &38872598990606720
@@ -2920,6 +2921,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8142400871787929859, guid: 0aa7e00d814a34847b233e57b43f046b, type: 3}
   m_PrefabInstance: {fileID: 4143786093357536373}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4253211514881713975
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6281370847116448983}
+    m_Modifications:
+    - target: {fileID: 6604014344959018849, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_Name
+      value: LootChest
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.022
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+--- !u!4 &6138746106810882169 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7941891620656807758, guid: 94dae75d1baa5614187afe91f040a2aa, type: 3}
+  m_PrefabInstance: {fileID: 4253211514881713975}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4288341727959475383
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2992,7 +3055,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 98335477635582917, guid: 24e0ca837b0ad064b8b72fd219917c8f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 98335477635582917, guid: 24e0ca837b0ad064b8b72fd219917c8f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3000,7 +3063,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 98335477635582917, guid: 24e0ca837b0ad064b8b72fd219917c8f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.9
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 98335477635582917, guid: 24e0ca837b0ad064b8b72fd219917c8f, type: 3}
       propertyPath: m_LocalRotation.w
