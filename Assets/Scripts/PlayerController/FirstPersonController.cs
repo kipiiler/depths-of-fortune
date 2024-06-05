@@ -1,4 +1,4 @@
-﻿// CHANGE LOG
+// CHANGE LOG
 // 
 // CHANGES || version VERSION
 //
@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Threading;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -172,6 +173,9 @@ public class FirstPersonController : MonoBehaviour
 
     public Transform crosshairTransform;
     public Transform gameoverTransform;
+
+    [SerializeField]
+    private AudioSource lootSound;
 
     private void Awake()
     {
@@ -462,10 +466,23 @@ public class FirstPersonController : MonoBehaviour
                     }
                 }
             }
-            else
+<<<<<<< Assets/Scripts/PlayerController/FirstPersonController.cs
+            else if (raycastHit.transform.TryGetComponent(out LootGrabbable lootGrabbable))
             {
-                interactText.text = "";
+                interactText.text = "Press E";
+                if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+                {
+                    interactText.text = "";
+                    lootGrabbable.Grab(leftHand);
+                    Destroy(lootGrabbable.gameObject);
+                    Map.treasure++;
+                    lootSound.Play();
+                }
             }
+
+        } else
+        {
+            interactText.text = "";
 
             if (hasTorch)
             {
