@@ -1,4 +1,4 @@
-﻿// CHANGE LOG
+// CHANGE LOG
 // 
 // CHANGES || version VERSION
 //
@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Threading;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -158,6 +159,11 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    private int health = 2;
+
+    public bool isAttacked;
+    private float attackedDuration = 0.750f;
+    
     public TMP_Text scoreText;
 
     public RenderTexture revealTexture;
@@ -165,8 +171,11 @@ public class FirstPersonController : MonoBehaviour
     public bool isDead;
     private bool disableMovement;
 
-    public GameObject crosshairGameObj;
-    public GameObject gameoverGameObj;
+    public Transform crosshairTransform;
+    public Transform gameoverTransform;
+
+    [SerializeField]
+    private AudioSource lootSound;
 
     private void Awake()
     {
@@ -188,8 +197,10 @@ public class FirstPersonController : MonoBehaviour
 
     void Start()
     {
-        gameoverGameObj.SetActive(false);
-        crosshairGameObj.SetActive(true);
+        gameoverTransform.gameObject.SetActive(false);
+        crosshairTransform.gameObject.SetActive(true);
+
+        crosshairTransform.GetChild(0).gameObject.SetActive(false);
 
         if (lockCursor)
         {
@@ -326,7 +337,7 @@ public class FirstPersonController : MonoBehaviour
 
         #region Sprint
 
-        if (enableSprint)
+        if (!isDead && enableSprint)
         {
             if (isSprinting)
             {
@@ -378,7 +389,7 @@ public class FirstPersonController : MonoBehaviour
         #region Jump
 
         // Gets input and calls jump method
-        if (enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
+        if (!isDead && enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
         {
             Jump();
         }
@@ -392,7 +403,7 @@ public class FirstPersonController : MonoBehaviour
 
         #region Crouch
 
-        if (enableCrouch)
+        if (!isDead && enableCrouch)
         {
             if (!isSprinting)
             {
@@ -422,100 +433,138 @@ public class FirstPersonController : MonoBehaviour
         if (!isDead) scoreText.text = "Score: " + Map.CalculateScore().ToString();
 
         #region Torch            
-        
-        float pickUpDistance = 3f;
-        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, pickUpDistance))
+
+        if (!isDead)
         {
-            if (raycastHit.transform.TryGetComponent(out WeaponGrabbable grabbable))
+            float pickUpDistance = 3f;
+            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, pickUpDistance))
             {
-                interactText.text = "Press E";
-                if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+                if (raycastHit.transform.TryGetComponent(out WeaponGrabbable grabbable))
                 {
-                    interactText.text = "";
-                    if (!hasTorch)
+                    interactText.text = "Press E";
+                    if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
                     {
-                        // Copy the torch to hand
-                        torch = grabbable.Grab(leftHand);
-                        Transform fire = torch.transform.GetChild(0).GetChild(0);
-                        fireAlpha = fire.GetChild(0);
-                        fireAdd = fire.GetChild(1);
-                        fireSpark = fire.GetChild(2);
-                        fireGlow = fire.GetChild(3);
-                        fireLight = fire.GetChild(4).GetComponent<Light>();
-                        originalIntensity = fireLight.intensity;
-                    } 
+                        interactText.text = "";
+                        if (!hasTorch)
+                        {
+                            // Copy the torch to hand
+                            torch = grabbable.Grab(leftHand);
+                            Transform fire = torch.transform.GetChild(0).GetChild(0);
+                            fireAlpha = fire.GetChild(0);
+                            fireAdd = fire.GetChild(1);
+                            fireSpark = fire.GetChild(2);
+                            fireGlow = fire.GetChild(3);
+                            fireLight = fire.GetChild(4).GetComponent<Light>();
+                            originalIntensity = fireLight.intensity;
+                        }
 
-                    hasTorch = true;
-                    torchCurrDuration = torchDuration;
+                        hasTorch = true;
+                        torchCurrDuration = torchDuration;
 
-                    // Destroy the original torch
-                    Destroy(grabbable.gameObject);
+                        // Destroy the original torch
+                        Destroy(grabbable.gameObject);
+                    }
+                }
+                else if (raycastHit.transform.TryGetComponent(out LootGrabbable lootGrabbable))
+                {
+                    interactText.text = "Press E";
+                    if (Input.GetKeyDown(KeyCode.E) && isGrounded && !isWalking && !isSprinting)
+                    {
+                        interactText.text = "";
+                        lootGrabbable.Grab(leftHand);
+                        Destroy(lootGrabbable.gameObject);
+                        Map.treasure++;
+                        lootSound.Play();
+                    }
                 }
             }
-        } else
-        {
-            interactText.text = "";
-        }
-
-        if (hasTorch)
-        {
-            torchCurrDuration -= Time.deltaTime;
-
-            Vector3 lightChange = new Vector3(torchCurrDuration / torchDuration, torchCurrDuration / torchDuration, torchCurrDuration / torchDuration);
-            // Reducing the torch intensity
-            fireAlpha.localScale = lightChange;
-            fireAdd.localScale = lightChange;
-            fireGlow.localScale = lightChange;
-            fireSpark.localScale = lightChange;
-            fireLight.intensity = originalIntensity * torchCurrDuration / torchDuration;
-
-        }
-        if (torchCurrDuration < 0)
-        {
-            hasTorch = false;
-            Destroy(torch);
-            torch = null;
-            torchCurrDuration = 0f;
-        }
-
-        if (attackCooldown == 0f && !isAttacking && hasTorch && Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            isAttacking = true;
-            torchCurrDuration -= attackCost;
-        }
-
-
-        if (attackCooldown == 0f && isAttacking)
-        {
-            attackDuration -= Time.deltaTime;
-
-            if (attackDuration < 0)
+            else
             {
-                attackCooldown = attackCooldownReset;
-                attackDuration = 2.333f;
+                interactText.text = "";
+            }
+
+            if (hasTorch)
+            {
+                torchCurrDuration -= Time.deltaTime;
+
+                Vector3 lightChange = new Vector3(torchCurrDuration / torchDuration, torchCurrDuration / torchDuration, torchCurrDuration / torchDuration);
+                // Reducing the torch intensity
+                fireAlpha.localScale = lightChange;
+                fireAdd.localScale = lightChange;
+                fireGlow.localScale = lightChange;
+                fireSpark.localScale = lightChange;
+                fireLight.intensity = originalIntensity * torchCurrDuration / torchDuration;
+
+            }
+            if (torchCurrDuration < 0)
+            {
+                hasTorch = false;
+                Destroy(torch);
+                torch = null;
+                torchCurrDuration = 0f;
+            }
+
+            if (attackCooldown == 0f && !isAttacking && hasTorch && Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                isAttacking = true;
+                torchCurrDuration -= attackCost;
+            }
+
+
+            if (attackCooldown == 0f && isAttacking)
+            {
+                attackDuration -= Time.deltaTime;
+
+                if (attackDuration < 0)
+                {
+                    attackCooldown = attackCooldownReset;
+                    attackDuration = 2.333f;
+                    isAttacking = false;
+                }
+            }
+            else if (attackCooldown != 0f && !isAttacking)
+            {
+                attackCooldown -= Time.deltaTime;
+                if (attackCooldown <= 0f)
+                {
+                    attackCooldown = 0f;
+                }
+            }
+
+            // To drop the torch immediately
+            if (Input.GetKeyDown(KeyCode.R))
+            {
                 isAttacking = false;
-            }
-        } else if (attackCooldown != 0f && !isAttacking)
-        {
-            attackCooldown -= Time.deltaTime;
-            if (attackCooldown <= 0f)
-            {
                 attackCooldown = 0f;
+                attackDuration = 2.333f;
+
+                hasTorch = false;
+                Destroy(torch);
+                torch = null;
+                torchDuration = 0f;
+            }
+
+            #endregion
+
+            #region Attacked
+
+            // Just for debugging
+            if (!isDead && Input.GetKeyDown(KeyCode.T))
+            {
+                Attacked();
+            }
+
+            if (isAttacked)
+            {
+                attackedDuration -= Time.deltaTime;
+                if (attackedDuration < 0)
+                {
+                    attackedDuration = 0.750f;
+                    isAttacked = false;
+                }
             }
         }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            isAttacking = false;
-            attackCooldown = 0f;
-            attackDuration = 2.333f;
-
-            hasTorch = false;
-            Destroy(torch);
-            torch = null;
-            torchDuration = 0f;
-        }
-
+        
         #endregion
 
         #region Blackout
@@ -537,10 +586,6 @@ public class FirstPersonController : MonoBehaviour
         }
         #endregion
 
-        if (!isDead && Input.GetKey(KeyCode.T))
-        {
-            Die();
-        }
     }
 
     void FixedUpdate()
@@ -626,6 +671,7 @@ public class FirstPersonController : MonoBehaviour
         revealTexture.Release();
     }
 
+
     // Sets isGrounded based on a raycast sent straigth down from the player object
     private void CheckGround()
     {
@@ -674,6 +720,20 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    public void Attacked()
+    {
+        health--;
+        if (health == 0)
+        {
+            Die();
+        } else
+        {
+            // enable Red Vignette
+            isAttacked = true;
+            crosshairTransform.GetChild(0).gameObject.SetActive(true);
+        }
+    }
+
     public void Die()
     {
         if (!isDead)
@@ -689,8 +749,14 @@ public class FirstPersonController : MonoBehaviour
             isCrouched = false;
             playerCanMove = false;
 
-            crosshairGameObj.SetActive(false);
-            gameoverGameObj.SetActive(true);
+            gameoverTransform.gameObject.SetActive(true);
+            crosshairTransform.gameObject.SetActive(false);
+
+            gameoverTransform.GetChild(2).GetComponent<TMP_Text>().text = "Score: " + Map.CalculateScore();
+
+            lockCursor = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
     }

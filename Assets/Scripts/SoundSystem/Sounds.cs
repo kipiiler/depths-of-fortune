@@ -14,7 +14,7 @@ public static class Sounds
 
     public static void Remove(GameObject hearer)
     {
-        hearers.Remove(hearer);
+        hearers.Clear();
     }
 
     // This method should be called whenever a sound is played. All receivers need to implement IHear.

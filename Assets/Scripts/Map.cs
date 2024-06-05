@@ -10,8 +10,7 @@ public static class Map
     [NonSerialized]
     public static GameObject player = null;
 
-    public const int MAP_WIDTH = 10;
-    public const int MAP_HEIGHT = 10;
+    public const int MAP_DIMENSION = 7;
 
     [NonSerialized]
     public static int level = 0;
@@ -21,7 +20,7 @@ public static class Map
     private static float startTime;
 
     [NonSerialized]
-    public static MapGenerator mapGenerator = new MapGenerator(MAP_WIDTH, MAP_HEIGHT);
+    public static MapGenerator mapGenerator = new MapGenerator(MAP_DIMENSION, MAP_DIMENSION);
 
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;
@@ -131,8 +130,8 @@ public static class Map
     {
         Queue<Segment> queued = new Queue<Segment>();
         queued.Enqueue(origin);
-        Segment[][] prev = new Segment[MAP_WIDTH][];
-        for (int i = 0; i < MAP_WIDTH; i++) prev[i] = new Segment[MAP_HEIGHT];
+        Segment[][] prev = new Segment[MAP_DIMENSION][];
+        for (int i = 0; i < MAP_DIMENSION; i++) prev[i] = new Segment[MAP_DIMENSION];
 
         while (queued.Count != 0)
         {
@@ -189,7 +188,7 @@ public static class Map
          */
         public Segment(int posX, int posZ, float trapIntensity, Type type)
         {
-            if (posX < 0 || posX > MAP_WIDTH || posZ < 0 || posZ > MAP_HEIGHT || trapIntensity < 0 || trapIntensity > 1.0)
+            if (posX < 0 || posX > MAP_DIMENSION || posZ < 0 || posZ > MAP_DIMENSION || trapIntensity < 0 || trapIntensity > 1.0)
                 throw new ArgumentException("Invalid segment args");
             adjacent = new List<Segment>();
             x = posX;
