@@ -21,16 +21,14 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float MAX_SOUND_INTENSITY = 9f;
     static int MOVE_SPEED = 4;
     static float MIN_SETPOINT_DIST = 0.4f;
-    static float MIN_ATTACK_DIST = 1f;
+    static float MIN_ATTACK_DIST = 3f;
     static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
     static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
-    Stack<Vector3> setpoints;
     public Vector3 playerPosition;
-    public Map.Segment lastPlayerSegment;
     public FirstPersonController player;
 
 
@@ -53,8 +51,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         CurrentState = MonsterState.Exploratory;
         visited = new LinkedList<Map.Segment>();
         visited.AddFirst(Map.FindSegment(transform.position));
-        setpoints = new Stack<Vector3>();
-        setpoints.Push(transform.position);
         lastSound = new Sound(new Vector3(0, 0, 0), 0);
     }
 
@@ -63,7 +59,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
     {
         if (!pathfinderIsInstantiated)
         {
-            pathfinder = new Pathfinder(Map.MAP_WIDTH * Map.MODULE_WIDTH, Map.MAP_HEIGHT * Map.MODULE_WIDTH, 100, 100);
+            pathfinder = new Pathfinder(Map.MAP_WIDTH * Map.MODULE_WIDTH, Map.MAP_HEIGHT * Map.MODULE_WIDTH, 1000, 1000);
             pathfinderIsInstantiated = true;
         }
 
@@ -149,7 +145,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 CurrentState = MonsterState.Suspicious;
                 Debug.Log("Monster is now suspicious....");
-                // pathfinder.Update(lastSound.pos, transform.position);
             }
         }
     }
@@ -158,14 +153,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
     {
         if (newSoundFlag)
         {
-            Stack<Map.Segment> reverse = new Stack<Map.Segment>(
-                Map.FindPath(Map.FindSegment(transform.position), Map.FindSegment(lastSound.pos))
-            );
-            setpoints.Clear();
-            while (reverse.Count > 0)
-            {
-                setpoints.Push(reverse.Pop().GetUnityPosition());
-            }
+            Debug.Log("Updating setpoints...");
+            pathfinder.UpdateEndpoint(lastSound.pos, transform.position);
 
             // State transition
             if (GetMonsterRelativeSoundIntensity(lastSound) > SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD)
@@ -176,26 +165,11 @@ public class MonsterBehavior : MonoBehaviour, IHear
             newSoundFlag = false;  // We have now acted upon the sound
         }
 
-        // Check if we're in the segment already
-        if (Map.FindSegment(transform.position) == Map.FindSegment(lastSound.pos))
+        if (!pathfinder.HasNextSetpoint())
         {
-            if (Vector3.Distance(transform.position, lastSound.pos) < MIN_SETPOINT_DIST)
-            {
-                // State transition to explore
-                CurrentState = MonsterState.Exploratory;
-                Debug.Log("Monster is now exploratory...");
-                setpoints.Push(transform.position);
-            }
-            else
-            {
-                setpoints.Clear();
-                setpoints.Push(lastSound.pos);
-            }
-        }
-        else if (setpoints.Count > 0 &&
-                 Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
-        {
-            visited.AddFirst(Map.FindSegment(setpoints.Pop()));
+            // State transition to explore
+            CurrentState = MonsterState.Exploratory;
+            Debug.Log("Monster is now exploratory...");
         }
     }
 
@@ -208,43 +182,12 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // Monster will attack the player
             Debug.Log("Attack!");
+            anim.SetTrigger("Attack");
             player.Die();
         }
         else
         {
-            if (Map.FindSegment(playerPosition) != Map.FindSegment(transform.position))
-            {
-                // Continue traveling to the player
-                Map.Segment currentPlayerSegment = Map.FindSegment(playerPosition);
-                if (currentPlayerSegment != lastPlayerSegment)
-                {
-                    Debug.Log("Updating path...");
-                    // Update the path
-                    Stack<Map.Segment> reverse = new Stack<Map.Segment>(
-                        Map.FindPath(Map.FindSegment(transform.position), Map.FindSegment(playerPosition))
-                    );
-                    setpoints.Clear();
-                    while (reverse.Count > 0)
-                    {
-                        setpoints.Push(reverse.Pop().GetUnityPosition());
-                    }
-                    lastPlayerSegment = currentPlayerSegment;
-                }
-
-                // If we've reached setpoint, pop it from setpoints
-                if (setpoints.Count > 0 &&
-                    Vector3.Distance(transform.position, setpoints.Peek()) < MIN_SETPOINT_DIST)
-                {
-                    Debug.Log("Reached a setpoint");
-                    visited.AddFirst(Map.FindSegment(setpoints.Pop()));
-                }
-            }
-            else
-            {
-                // Go directly towards the player
-                setpoints.Clear();
-                setpoints.Push(playerPosition);
-            }
+            pathfinder.UpdateEndpoint(playerPosition, transform.position);
         }
 
         // Decrememt aggressive-to-suspicious timer
@@ -331,7 +274,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
                     if (hits.GetLength(0) == 0)
                     {
-                        grid[j, i] = 1; //  System.Int32.MaxValue;
+                        grid[j, i] = 1;
                     }
                     else
                     {
@@ -347,18 +290,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     }
                 }
             }
-
-            StringBuilder sb = new StringBuilder();
-            for(int i=0; i< grid.GetLength(0); i++)
-            {
-                for(int j=0; j< grid.GetLength(1); j++)
-                {
-                    sb.Append(grid[i,j]);
-                    sb.Append('\t');				   
-                }
-                sb.AppendLine();
-            }
-            Debug.Log(sb.ToString());
 
             // Instantiate
             setpoints = new Stack<Vector3>();
@@ -382,6 +313,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 
                 int[] dr = {0, 0, 1, -1};
                 int[] dc = {1, -1, 0, 0};
+                bool foundPath = false;
 
                 while (queue.Count > 0)
                 {
@@ -390,37 +322,54 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     if (curr == dst)
                     {
                         setpoints.Clear();
+                        int count = 0;
                         while (curr != src)
                         {
                             Vector2 prevWorld = GridToWorld(curr.x, curr.y);
                             setpoints.Push(new Vector3(prevWorld.x, position.y, prevWorld.y));
+                            count++;
                             curr = prev[curr.x, curr.y];
                         }
+                        foundPath = true;
+                        Debug.Log("Added " + count + " setpoints");
+                        break;
                     }
 
-                    for (int k = 0; k < 4; k++) { // Four directions: up, down, left, right
+                    for (int k = 0; k < 4; k++) {
                         int ni = (int) curr.x + dr[k];
                         int nj = (int) curr.y + dc[k];
                         
                         // Check if the new cell (ni, nj) is within the grid boundaries
                         if (ni >= 0 && ni < grid.GetLength(1) &&
                             nj >= 0 && nj < grid.GetLength(0) &&
-                            !visited[ni, nj]) { 
-                            queue.Enqueue((ni, nj));
-                            prev[ni, nj] = curr;
-                            visited[ni, nj] = true;
+                            !visited[ni, nj]) {
+                            if (grid[nj, ni] == 0)
+                            {
+                                queue.Enqueue((ni, nj));
+                                prev[ni, nj] = curr;
+                                visited[ni, nj] = true;
+                            }
                         }
                     }
                 }
-            }
 
-            endpoint = newEndpoint;
+                if (!foundPath)
+                {
+                    Debug.Log("No path found");
+                }
+
+                endpoint = newEndpoint;
+            }
+            else
+            {
+                Debug.Log("Not moved far enough");
+            }
         }
         
         public void Update(Vector3 position)
         {
             // IF the monster is close to the current setpoint, pop it and get the next one.
-            if (setpoints.Count > 0 &&
+            while (setpoints.Count > 0 &&
                 Vector3.Distance(setpoints.Peek(), position) < 0.4)
             {
                 setpoints.Pop();
