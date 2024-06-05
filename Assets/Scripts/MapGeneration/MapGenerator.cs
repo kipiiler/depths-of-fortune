@@ -57,13 +57,13 @@ public class MapGenerator
         this.MapStartCoordinate = new Vector2(0, 0);
 
         // Path building tiles
-        tiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/TileData.json");
-        this.NorthToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToSouthTileData.json");
-        this.EastToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToWestTileData.json");
-        this.NorthToEastTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/NorthToEastTileData.json");
-        this.EastToSouthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/EastToSouthTileData.json");
-        this.SouthToWestTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/SouthToWestTileData.json");
-        this.WestToNorthTiles = Tile.CreateListFromPath("Assets/Scripts/MapGeneration/Config/WestToNorthTileData.json");
+        tiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/TileData.json");
+        this.NorthToSouthTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/NorthToSouthTileData.json");
+        this.EastToWestTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/EastToWestTileData.json");
+        this.NorthToEastTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/NorthToEastTileData.json");
+        this.EastToSouthTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/EastToSouthTileData.json");
+        this.SouthToWestTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/SouthToWestTileData.json");
+        this.WestToNorthTiles = Tile.CreateListFromPath(Application.streamingAssetsPath + "/Config/WestToNorthTileData.json");
 
         // reference to the game objects
         this.tileObjects = new GameObject[width, height];

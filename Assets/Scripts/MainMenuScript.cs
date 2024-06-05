@@ -7,12 +7,13 @@ public class MainMenuScript : MonoBehaviour
 {
     public void PlayGame()
     {
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("MainScene");
     }
 
     public void MainMenu()
     {
-        SceneManager.LoadScene(0);
+        Map.Reset();
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void QuitGame()
