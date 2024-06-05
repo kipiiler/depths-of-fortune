@@ -24,9 +24,9 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 4f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
 
-    public float exploreSpeed = 4f;
-    public float chaseSpeed = 6f;
-    private float moveSpeed = 4f;
+    public float exploreSpeed = 1.5f;
+    public float chaseSpeed = 1.9f;
+    private float moveSpeed = 1.6f;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
@@ -97,7 +97,9 @@ public class MonsterBehavior : MonoBehaviour, IHear
             pathfinder.Update(transform.position);
             if (pathfinder.HasNextSetpoint())
             {
-                transform.LookAt(pathfinder.GetNextSetpoint());
+                Quaternion rotationDelta = Quaternion.LookRotation(pathfinder.GetNextSetpoint() - transform.position, Vector3.up);
+                transform.rotation = Quaternion.Lerp(transform.rotation, rotationDelta, Time.time * 80);
+                transform.position += transform.forward * moveSpeed * Time.deltaTime;
                 transform.position += transform.forward * moveSpeed * Time.deltaTime;
             }
         }
@@ -366,8 +368,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 queue.Enqueue(src);
                 visited[(int) src.x, (int) src.y] = true;
                 
-                int[] dr = {0, 0, 1, -1};
-                int[] dc = {1, -1, 0, 0};
+                int[] dr = {0, 0, 1, -1, 1, -1,  1, -1};
+                int[] dc = {1, -1, 0, 0,1,  1, -1, -1, };
                 bool foundPath = false;
 
                 while (queue.Count > 0)
@@ -389,7 +391,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
                         break;
                     }
 
-                    for (int k = 0; k < 4; k++) {
+                    for (int k = 0; k < 8; k++) {
                         int ni = (int) curr.x + dr[k];
                         int nj = (int) curr.y + dc[k];
                         
@@ -415,7 +417,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // IF the monster is close to the current setpoint, pop it and get the next one.
             while (setpoints.Count > 0 &&
-                    Vector3.Distance(setpoints.Peek(), position) < 0.2)
+                    Vector3.Distance(setpoints.Peek(), position) < 1) //0.2)
             {
                 setpoints.Pop();
             }

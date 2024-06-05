@@ -989,8 +989,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6801e149a03ac423a86c14edf01a92ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  exploreSpeed: 4
-  chaseSpeed: 6
+  exploreSpeed: 1.8
+  chaseSpeed: 2
   CurrentState: 0
   playerPosition: {x: 0, y: 0, z: 0}
   player: {fileID: 0}
