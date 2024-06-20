@@ -24,7 +24,7 @@ public static class Map
 
     public const float MODULE_WIDTH = 20;
     public const float MAP_BASE_Y = 0;
-    public const float MAP_FLOOR_HEIGHT = 0.5f;
+    public const float MAP_FLOOR_HEIGHT = 0.1f;
 
     [NonSerialized]
     public const float MODULE_OFFSET = MODULE_WIDTH / 2;
@@ -61,6 +61,7 @@ public static class Map
 
         player = UnityEngine.Object.Instantiate(playerPrefab, playerOrigin, playerOriginRotation);
         monster = UnityEngine.Object.Instantiate(monsterPrefab, monsterOrigin, Quaternion.identity);
+        monster.GetComponent<MonsterBehavior>().player = player.GetComponentInChildren<FirstPersonController>();
         Sounds.Add(monster);
 
         level++;
@@ -104,7 +105,7 @@ public static class Map
             }
         }
         monsterOrigin = far;
-        monsterOrigin.y += MAP_FLOOR_HEIGHT - 0.3f;
+        monsterOrigin.y += MAP_FLOOR_HEIGHT - 0.2f;
     }
 
     /**

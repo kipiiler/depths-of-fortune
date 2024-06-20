@@ -18,19 +18,24 @@ public class MonsterBehavior : MonoBehaviour, IHear
     static float AGGRESSIVE_AMBIENT_SOUND = 1f;
     static float SOUND_FALL_OFF = 0.6f;
     static float MAX_SOUND_INTENSITY = 9f;
-    static int MOVE_SPEED = 4;
     static float MIN_SETPOINT_DIST = 0.4f;
     static float MIN_ATTACK_DIST = 3f;
-    static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 3f;
-    static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 2f;
+    static float EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD = 6f;
+    static float SUSPICIOUS_TO_AGGRESSIVE_SOUND_THRESHOLD = 4f;
     static int AGGRESSIVE_TO_SUSPICIOUS_TIME_THRESHOLD = 10;
+
+    public float exploreSpeed = 1.5f;
+    public float chaseSpeed = 1.9f;
+    private float moveSpeed = 1.6f;
 
     public MonsterState CurrentState;
     LinkedList<Map.Segment> visited;
+    Map.Segment lastSegment;
     public Vector3 playerPosition;
     public FirstPersonController player;
 
     public bool isStunned = false;
+    public bool isAttacking = false;
     private float stunDuration = 3f;
 
     private float attackCooldown;
@@ -53,7 +58,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
         anim.SetTrigger("StartWalk");
         CurrentState = MonsterState.Exploratory;
         visited = new LinkedList<Map.Segment>();
-        visited.AddFirst(Map.FindSegment(transform.position));
         lastSound = new Sound(new Vector3(0, 0, 0), 0);
     }
 
@@ -84,11 +88,20 @@ public class MonsterBehavior : MonoBehaviour, IHear
                     break;
             }
 
+            Map.Segment currSegment = Map.FindSegment(transform.position);
+            if (currSegment != lastSegment)
+            {
+                visited.AddFirst(currSegment);
+                lastSegment = currSegment;
+            }
+
             pathfinder.Update(transform.position);
             if (pathfinder.HasNextSetpoint())
             {
-                transform.LookAt(pathfinder.GetNextSetpoint());
-                transform.position += transform.forward * MOVE_SPEED * Time.deltaTime;
+                Quaternion rotationDelta = Quaternion.LookRotation(pathfinder.GetNextSetpoint() - transform.position, Vector3.up);
+                transform.rotation = Quaternion.Lerp(transform.rotation, rotationDelta, Time.time * 80);
+                transform.position += transform.forward * moveSpeed * Time.deltaTime;
+                transform.position += transform.forward * moveSpeed * Time.deltaTime;
             }
         }
         else
@@ -98,8 +111,6 @@ public class MonsterBehavior : MonoBehaviour, IHear
             {
                 stunDuration = 2.5f;
                 isStunned = false;
-                anim.SetTrigger("StartWalk");
-
             }
         }
 
@@ -115,9 +126,11 @@ public class MonsterBehavior : MonoBehaviour, IHear
     }
 
     void Explore() {
-        if (!pathfinder.HasNextSetpoint()) {
+        moveSpeed = exploreSpeed;
+        Map.Segment currSegment = Map.FindSegment(transform.position);
+        while (!pathfinder.HasNextSetpoint()) {
             // Our new setpoint will be the adjacent segment visited the longest ago
-            List<Map.Segment> adj = Map.FindSegment(transform.position).Adjacent;
+            List<Map.Segment> adj = currSegment.Adjacent;
             List<Map.Segment> oldestVisited = new List<Map.Segment>();
             int highestWeight = -1;
             foreach (Map.Segment s in adj) 
@@ -153,15 +166,22 @@ public class MonsterBehavior : MonoBehaviour, IHear
             // If there are multiple old/non-visited segments, randomly choose one
             Map.Segment newSetpoint = oldestVisited[Random.Range(0, oldestVisited.Count)];
 
-            // Add this segment to visited
-            visited.AddFirst(newSetpoint);
-
             // Update the pathfinder
             pathfinder.UpdateEndpoint(newSetpoint.GetUnityPosition(), transform.position);
+
+            if (!pathfinder.HasNextSetpoint())
+            {
+                visited.AddFirst(currSegment);
+                currSegment = newSetpoint;
+            }
         }
 
         // State transition
-        if (newSoundFlag)
+        if (Vector3.Distance(transform.position, playerPosition) < 2)
+        {
+            CurrentState = MonsterState.Aggressive;
+        }
+        else if (newSoundFlag)
         {
             float soundIntensity = GetMonsterRelativeSoundIntensity(lastSound);
             if (soundIntensity > EXPLORE_TO_AGGRESSIVE_SOUND_THRESHOLD)
@@ -177,6 +197,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     void Investigate()
     {
+        moveSpeed = exploreSpeed;
         if (newSoundFlag)
         {
             pathfinder.UpdateEndpoint(lastSound.pos, transform.position);
@@ -189,7 +210,11 @@ public class MonsterBehavior : MonoBehaviour, IHear
             newSoundFlag = false;  // We have now acted upon the sound
         }
 
-        if (!pathfinder.HasNextSetpoint())
+        if (Vector3.Distance(transform.position, playerPosition) < 2)
+        {
+            CurrentState = MonsterState.Aggressive;
+        }
+        else if (!pathfinder.HasNextSetpoint())
         {
             // State transition to explore
             CurrentState = MonsterState.Exploratory;
@@ -198,6 +223,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
 
     void Attack()
     {
+        moveSpeed = chaseSpeed;
         // Acknowledge new sounds
         if (newSoundFlag) newSoundFlag = false;
 
@@ -206,6 +232,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
             if (attackCooldown <= 0f)
             {
                 // Monster will attack the player
+                isAttacking = true;
                 anim.SetTrigger("Attack");
                 player.Attacked();
 
@@ -343,8 +370,8 @@ public class MonsterBehavior : MonoBehaviour, IHear
                 queue.Enqueue(src);
                 visited[(int) src.x, (int) src.y] = true;
                 
-                int[] dr = {0, 0, 1, -1};
-                int[] dc = {1, -1, 0, 0};
+                int[] dr = {0, 0, 1, -1, 1, -1,  1, -1};
+                int[] dc = {1, -1, 0, 0,1,  1, -1, -1, };
                 bool foundPath = false;
 
                 while (queue.Count > 0)
@@ -366,7 +393,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
                         break;
                     }
 
-                    for (int k = 0; k < 4; k++) {
+                    for (int k = 0; k < 8; k++) {
                         int ni = (int) curr.x + dr[k];
                         int nj = (int) curr.y + dc[k];
                         
@@ -392,7 +419,7 @@ public class MonsterBehavior : MonoBehaviour, IHear
         {
             // IF the monster is close to the current setpoint, pop it and get the next one.
             while (setpoints.Count > 0 &&
-                Vector3.Distance(setpoints.Peek(), position) < 0.4)
+                    Vector3.Distance(setpoints.Peek(), position) < 1) //0.2)
             {
                 setpoints.Pop();
             }
@@ -414,8 +441,42 @@ public class MonsterBehavior : MonoBehaviour, IHear
         }
 
         public (int, int) WorldToGrid(float x, float z) {
-            return ((int) Mathf.Round((z / zUnit) - 0.5f),
-                    (int) Mathf.Round((x / xUnit) - 0.5f));
+            (int x, int y) gridCoords = ((int) Mathf.Round((z / zUnit) - 0.5f),
+                                         (int) Mathf.Round((x / xUnit) - 0.5f));
+            
+            // Get next best
+            if (grid[gridCoords.y, gridCoords.x] == 1)
+            {
+                // Go up
+                if (gridCoords.y - 1 >= 0 &&
+                    grid[gridCoords.y - 1, gridCoords.x] == 0)
+                {
+                    return (gridCoords.x, gridCoords.y - 1);
+                }
+
+                // Go down
+                if (gridCoords.y + 1 < grid.GetLength(0) &&
+                    grid[gridCoords.y + 1, gridCoords.x] == 0)
+                {
+                    return (gridCoords.x, gridCoords.y + 1);
+                }
+
+                // Go left
+                if (gridCoords.x - 1 >= 0 &&
+                    grid[gridCoords.y, gridCoords.x - 1] == 0)
+                {
+                    return (gridCoords.x - 1, gridCoords.y);
+                }
+
+                // Go right
+                if (gridCoords.y + 1 < grid.GetLength(1) &&
+                    grid[gridCoords.y, gridCoords.x + 1] == 0)
+                {
+                    return (gridCoords.x + 1, gridCoords.y);
+                }
+            }
+            
+            return gridCoords;
         }
     }
 }

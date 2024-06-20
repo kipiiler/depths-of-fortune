@@ -64,6 +64,13 @@
       "nameID": "Straight1"
     },
     {
+      "resoursePath": "straights/straightChurch",
+      "edges": ["0", "1", "0", "1"],
+      "possible_rotation": [0,1,2,3],
+      "weight": 1.0,
+      "nameID": "StraightC"
+    },
+    {
       "resoursePath": "corners/corner",
       "edges": ["1", "1", "0", "0"],
       "possible_rotation": [0, 1, 2, 3],
@@ -102,14 +109,21 @@
       "resoursePath": "fourways/fourway2",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0,1,2,3],
-      "weight": 10.0,
+      "weight": 3.0,
       "nameID": "FourWay2"
     },
     {
       "resoursePath": "fourways/fourwayAltar",
       "edges": ["1", "1", "1", "1"],
       "possible_rotation": [0],
-      "weight": 10.0,
+      "weight": 3.0,
+      "nameID": "FourWayA"
+    },
+    {
+      "resoursePath": "fourways/fourway3",
+      "edges": ["1", "1", "1", "1"],
+      "possible_rotation": [0,1,2,3],
+      "weight": 3.0,
       "nameID": "FourWay3"
     }
   ]

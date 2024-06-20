@@ -44,9 +44,7 @@ public class GameController : MonoBehaviour
             toggleMap = !toggleMap;
             mapObject.SetActive(toggleMap);
         }
-        if (Map.monster.GetComponent<MonsterBehavior>().CurrentState == MonsterBehavior.MonsterState.Aggressive)
-        {
-            Map.monster.GetComponent<MonsterBehavior>().playerPosition = Map.player.transform.position;
-        }
+        
+        Map.monster.GetComponent<MonsterBehavior>().playerPosition = Map.player.transform.position;
     }
 }
